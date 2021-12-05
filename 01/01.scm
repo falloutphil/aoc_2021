@@ -14,6 +14,7 @@ exec guile -e '(@ (day01) main)' -s "$0" "$@"
 
 ;; change transform for function that actually returns the result!
 ;; change to macro with nicer syntax
+;; do you want to use map transform or right a recursive function?
 (define (main args)
   (format #t
 	  "~%Result: ~a~%"
