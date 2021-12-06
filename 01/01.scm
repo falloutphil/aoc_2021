@@ -23,7 +23,7 @@ exec guile -e '(@ (day01) main)' -s "$0" "$@"
    of the previous element for comparison."
   (let ((last-value #f))
     (lambda (depth-reading)
-      (let* ((result (if last-value
+      (let ((result (if last-value
 			(- depth-reading last-value)
 			0)))
 	(set! last-value depth-reading)
