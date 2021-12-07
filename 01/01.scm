@@ -15,7 +15,7 @@ exec guile -e '(@ (day01) main)' -s "$0" "$@"
   (call-with-input-file filename
     (lambda (p)
       (map transform
-	   (init (map string->number ;; not wonderfully efficient
+           (init (map string->number ;; not wonderfully efficient
 		      (list-ec (:port line p read-line) line)))))))
 
 (define (make-count-increments)

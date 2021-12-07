@@ -1,9 +1,7 @@
-#!/usr/bin/env sh
-exec guile -e '(@ (day01) main)' -s "$0" "$@"
+#!/usr/bin/env -S guile -s
 !#
 
-(define-module (day02)
-  #:export (main))
+;; hint: ./lisp-input.sed input.txt > input.scm
 
 (define hpos 0)
 (define vpos 0)
@@ -12,10 +10,10 @@ exec guile -e '(@ (day01) main)' -s "$0" "$@"
   (set! hpos (+ hpos n)))
 
 (define (up n)
-  (set! hpos (- vpos n)))
+  (set! vpos (- vpos n)))
 
 (define (down n)
-  (set! hpos (+ vpos n)))
+  (set! vpos (+ vpos n)))
 
-(define (main args)
-  )
+(load "input.scm")
+(format #t "~%Part One Result: ~d~%" (* hpos vpos))
