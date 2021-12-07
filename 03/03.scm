@@ -53,4 +53,4 @@ exec guile -e '(@ (day03) main)' -s "$0" "$@"
          (gamma-list (list->bitvector (map (compose (cut > <> 500) bitvector-count) t-bvec))) ; count the 1s for transposed column return #t for each >500
          (gamma (binary->decimal (bitlist->list (bitvector->list gamma-list)))) ; convert the list into integers then decimal
          (epsilon (logxor gamma #b111111111111))) ; flip the bits to get epsilon easily
-    (format #t "~%Part One: ~d~%" (* gamma epsilon))))
+    (format #t "~%Part One: ~a~%" (* gamma epsilon))))
