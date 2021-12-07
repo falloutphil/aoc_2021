@@ -50,7 +50,7 @@ exec guile -e '(@ (day03) main)' -s "$0" "$@"
          (t-one-false-array (transpose-array one-false-array 1 0)) 
          (t-bvec (map list->bitvector (array->list t-one-false-array))) ; convert transposed columns to bitvectors
          ;; the question doesn't specify output when each bit is equally as common so ignore that case!
-         (gamma-list (list->bitvector (map (compose (cut > <> 500) bitvector-count) t-bvec))) ; count the 1s for transposed column return #t for each >500
-         (gamma (binary->decimal (bitlist->list (bitvector->list gamma-list)))) ; convert the list into integers then decimal
+         (gamma-list (map (compose (cut > <> 500) bitvector-count) t-bvec)) ; count the 1s for transposed column return #t for each >500
+         (gamma (binary->decimal (bitlist->list gamma-list))) ; convert the list into integers then decimal
          (epsilon (logxor gamma #b111111111111))) ; flip the bits to get epsilon easily
     (format #t "~%Part One: ~a~%" (* gamma epsilon))))
