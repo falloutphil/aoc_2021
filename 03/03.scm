@@ -48,7 +48,7 @@ exec guile -e '(@ (day03) main)' -s "$0" "$@"
 (define (main args)
   (let* ((one-false-array (list->array 2 (file->bitlist "input.txt"))) ; get the input convert to 2D array of 1s and #fs
          (t-one-false-array (transpose-array one-false-array 1 0)) 
-         (t-bvec (map list->bitvector (array->list t-one-false-array))) ; convert transposed columns to bitvectors
+         (t-bvec (map list->bitvector (array->list t-one-false-array))) ; convert transposed columns to list of bitvectors
          ;; the question doesn't specify output when each bit is equally as common so ignore that case!
          (gamma-list (map (compose (cut > <> 500) bitvector-count) t-bvec)) ; count the 1s for transposed column return #t for each >500
          (gamma (binary->decimal (bitlist->list gamma-list))) ; convert the list into integers then decimal
