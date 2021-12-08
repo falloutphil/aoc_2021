@@ -41,6 +41,48 @@ exec guile -e '(@ (day03) main)' -s "$0" "$@"
         0 
         (+ (car rev-bl) (* 2 (loop (cdr rev-bl)))))))
 
+(define (all-indices lst x)
+  (let loop ((lst lst)
+             (n 0))
+    (cond
+     ((null? lst) '())
+     ((eqv? (car lst) x) (cons n (loop (cdr lst) (+ n 1))))
+     (else (loop (cdr lst) (+ n 1))))))
+
+
+(define test-report
+  #2((#f #f #\1 #f #f)
+    (#\1 #\1 #\1 #\1 #f)
+    (#\1 #f #\1 #\1 #f)
+    (#\1 #f #\1 #\1 #\1)
+    (#\1 #f #\1 #f #\1)
+    (#f #\1 #\1 #\1 #\1)
+    (#f #f #\1 #\1 #\1)
+    (#\1 #\1 #\1 #f #f)
+    (#\1 #f #f #f #f)
+    (#\1 #\1 #f #f #\1)
+    (#f #f #f #\1 #f)
+    (#f #\1 #f #\1 #f)))
+
+(define (rating-filter bitarray n cmp)
+  (let* ((lh-slice (array->list
+                    (make-shared-array bitarray
+                                       (lambda (i) (list i n)) ;; take slice holding column constant as n
+                                       `(0 ,(- (array-length bitarray) 1))))) ;; bound by length of array
+         (bv-slice (list->bitvector lh-slice)) ;; convert to bitvector
+         (dominant-bit (if (cmp (bitvector-count bv-slice) (/ (bitvector-length bv-slice) 2)) #\1 #f)) ;; count 1s and 0s - decide which is dominant
+         (indices (all-indices lh-slice dominant-bit)) ;; get indices
+         (new-array (list->array 2 (map (compose array->list (cut array-cell-ref bitarray <>)) indices)))) ;; contains only indices
+    (format #t "~%lh-slice: ~a~%" lh-slice)
+    (format #t "~%bv-slice: ~a~%" bv-slice)
+    (format #t "~%dominant-bit: ~a~%" dominant-bit)
+    (format #t "~%indices: ~a~%" indices)
+    (format #t "~%new-array: ~a~%" new-array)
+    (if (> (array-length new-array) 1)
+        (rating-filter new-array (+ n 1) cmp)
+        ((compose binary->decimal bitlist->list vector->list) (array-cell-ref new-array 0)))))   
+
+
 ;; Using bitvectors turned out to be a pain because
 ;; 0 is not accepted as #f, and converting back 1 becomes #t
 ;; Also bitvectors don't have a simple conversion to and from
@@ -53,4 +95,9 @@ exec guile -e '(@ (day03) main)' -s "$0" "$@"
          (gamma-list (map (compose (cut > <> 500) bitvector-count) t-bvec)) ; count the 1s for transposed column return #t for each >500
          (gamma (binary->decimal (bitlist->list gamma-list))) ; convert the list into integers then decimal
          (epsilon (logxor gamma #b111111111111))) ; flip the bits to get epsilon easily
-    (format #t "~%Part One: ~a~%" (* gamma epsilon))))
+    (format #t "~%Part One: ~a~%" (* gamma epsilon)))
+  
+  (let* ((one-false-array (list->array 2 (file->bitlist "input.txt"))) ; get the input convert to 2D array of 1s and #fs
+         (oxygen (rating-filter one-false-array 0 >=))
+         (co2 (rating-filter one-false-array 0 <)))
+    (format #t "~%Part Two: ~a~%" (* oxygen co2))))
