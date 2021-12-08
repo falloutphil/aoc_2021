@@ -79,7 +79,7 @@ exec guile -e '(@ (day03) main)' -s "$0" "$@"
            (bv-slice (list->bitvector col-slice)) ;; convert to bitvector
            (dominant-bit (if (cmp (bitvector-count bv-slice) (/ (bitvector-length bv-slice) 2)) #\1 #f)) ;; count 1s and 0s - decide which is dominant
            (indices (all-indices col-slice dominant-bit)) ;; get indices
-           (new-array (list->array 2 (map (compose array->list (cut array-cell-ref bitarray <>)) indices)))) ;; contains only indices
+           (new-array (list->array 2 (map (compose array->list (cut array-cell-ref bitarray <>)) indices)))) ;; get the rows (array-cell-ref) matching the indices and make a new array
       (if (> (array-length new-array) 1)
           (loop new-array (+ n 1))
           ((compose binary->decimal bitlist->list vector->list) (array-cell-ref new-array 0))))))
