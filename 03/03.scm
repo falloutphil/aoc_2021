@@ -42,6 +42,7 @@ exec guile -e '(@ (day03) main)' -s "$0" "$@"
         (+ (car rev-bl) (* 2 (loop (cdr rev-bl)))))))
 
 (define (all-indices lst x)
+  "Return all indices that match x in list."
   (let loop ((lst lst)
              (n 0))
     (cond
@@ -49,7 +50,7 @@ exec guile -e '(@ (day03) main)' -s "$0" "$@"
      ((eqv? (car lst) x) (cons n (loop (cdr lst) (+ n 1))))
      (else (loop (cdr lst) (+ n 1))))))
 
-
+;; Test input data from the example in the question.
 (define test-report
   #2((#f #f #\1 #f #f)
     (#\1 #\1 #\1 #\1 #f)
@@ -65,6 +66,10 @@ exec guile -e '(@ (day03) main)' -s "$0" "$@"
     (#f #\1 #f #\1 #f)))
 
 (define (rating-filter bitarray n cmp)
+  "Slice column and determine dominant bit in slice.
+   Work out indices with the dominant bit (using cmp to compare).
+   Create a new array with row numbers matching the indices.
+   Repeat until one result left."
   (let* ((lh-slice (array->list
                     (make-shared-array bitarray
                                        (lambda (i) (list i n)) ;; take slice holding column constant as n
@@ -73,11 +78,6 @@ exec guile -e '(@ (day03) main)' -s "$0" "$@"
          (dominant-bit (if (cmp (bitvector-count bv-slice) (/ (bitvector-length bv-slice) 2)) #\1 #f)) ;; count 1s and 0s - decide which is dominant
          (indices (all-indices lh-slice dominant-bit)) ;; get indices
          (new-array (list->array 2 (map (compose array->list (cut array-cell-ref bitarray <>)) indices)))) ;; contains only indices
-    (format #t "~%lh-slice: ~a~%" lh-slice)
-    (format #t "~%bv-slice: ~a~%" bv-slice)
-    (format #t "~%dominant-bit: ~a~%" dominant-bit)
-    (format #t "~%indices: ~a~%" indices)
-    (format #t "~%new-array: ~a~%" new-array)
     (if (> (array-length new-array) 1)
         (rating-filter new-array (+ n 1) cmp)
         ((compose binary->decimal bitlist->list vector->list) (array-cell-ref new-array 0)))))   
