@@ -72,13 +72,13 @@ exec guile -e '(@ (day03) main)' -s "$0" "$@"
    Repeat until one result left."
   (let loop ((bitarray bitarray)
              (n 0))
-    (let* ((lh-slice (array->list
+    (let* ((col-slice (array->list
                       (make-shared-array bitarray
                                          (lambda (i) (list i n)) ;; take slice holding column constant as n
                                          `(0 ,(- (array-length bitarray) 1))))) ;; bound by length of array
-           (bv-slice (list->bitvector lh-slice)) ;; convert to bitvector
+           (bv-slice (list->bitvector col-slice)) ;; convert to bitvector
            (dominant-bit (if (cmp (bitvector-count bv-slice) (/ (bitvector-length bv-slice) 2)) #\1 #f)) ;; count 1s and 0s - decide which is dominant
-           (indices (all-indices lh-slice dominant-bit)) ;; get indices
+           (indices (all-indices col-slice dominant-bit)) ;; get indices
            (new-array (list->array 2 (map (compose array->list (cut array-cell-ref bitarray <>)) indices)))) ;; contains only indices
       (if (> (array-length new-array) 1)
           (loop new-array (+ n 1))
