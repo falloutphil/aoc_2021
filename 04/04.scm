@@ -60,7 +60,9 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
 	      (bingo #t))
 	  (array-for-each (lambda (i) (set! bingo (and bingo (i 'called?)))
 				  (format #t "~%col slice: (~a ~a) " (i 'get-value) (i 'called?))) slice)
-	  (format #t "~%bingo: ~a" bingo))
+	  (format #t "~%bingo: ~a" bingo)
+	  ;; if bingo break here!
+	  )
 	(when (< x 4) (col-loop (+ x 1))))
       (let row-loop ((x 0))
 	(let ((slice (make-shared-array test-board
@@ -69,7 +71,9 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
 	      (bingo #t))
 	  (array-for-each (lambda (i) (set! bingo (and bingo (i 'called?)))
 				  (format #t "~%row slice: (~a ~a) " (i 'get-value) (i 'called?))) slice)
-	  (format #t "~%bingo: ~a" bingo))
+	  (format #t "~%bingo: ~a" bingo)
+	  ;; if bingo break here!
+	  )
 	(when (< x 4) (row-loop (+ x 1))))
     (when (< n 2) (board-loop (+ n 1))))))
 
@@ -85,11 +89,10 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
   
 (define (main args)
   (let-values (((numbers boards) (parse-input "test_input.txt")))
-    (format #t "~%numbers: ~a~%" numbers)
+    ;(format #t "~%numbers: ~a~%" numbers)
     ;(format #t "~%first board: ~a~%" (array-cell-ref boards 0))
-    (format #t "~%array values: ")
-    (array-for-each (lambda (i) (format #t "(~a ~a) " (i 'get-value) (i 'called?))) boards)
-    (format #t "~%test element: ~a~%" ((array-ref boards 0 0 0) 'get-value))
-    (map (cut call-and-check boards <>) numbers)
-    ))
+    ;(format #t "~%array values: ")
+    ;(array-for-each (lambda (i) (format #t "(~a ~a) " (i 'get-value) (i 'called?))) boards)
+    ;(format #t "~%test element: ~a~%" ((array-ref boards 0 0 0) 'get-value))
+    (map (cut call-and-check boards <>) numbers)))
     
