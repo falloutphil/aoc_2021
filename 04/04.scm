@@ -50,7 +50,7 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
 	 (make-shared-array flat-boards (lambda (i j k) (list (+ (* i 25) (* j 5) k))) 3 5 5))))))
 
 ;; use a continuation to break on bingo!
-(define (slicer boards)
+(define (slicer break boards)
   (let board-loop ((n 0))
     (let ((test-board (array-cell-ref boards n)))
       (let col-loop ((x 0))
@@ -62,6 +62,7 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
 				  (format #t "~%col slice: (~a ~a) " (i 'get-value) (i 'called?))) slice)
 	  (format #t "~%bingo: ~a" bingo)
 	  ;; if bingo break here!
+	  (when bingo (break n))
 	  )
 	(when (< x 4) (col-loop (+ x 1))))
       (let row-loop ((x 0))
@@ -73,19 +74,20 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
 				  (format #t "~%row slice: (~a ~a) " (i 'get-value) (i 'called?))) slice)
 	  (format #t "~%bingo: ~a" bingo)
 	  ;; if bingo break here!
+	  (when bingo (break n))
 	  )
 	(when (< x 4) (row-loop (+ x 1))))
     (when (< n 2) (board-loop (+ n 1))))))
 
 
-(define (call-and-check arr num)
+(define (call-and-check break arr num)
   (array-for-each
    (lambda (i)
      (when (eqv? (i 'get-value) num)
        (i '!called))
      (format #t "~%num: ~a val: ~a called: ~a" num (i 'get-value) (i 'called?)))
    arr)
-  (slicer arr))
+  (slicer break arr))
   
 (define (main args)
   (let-values (((numbers boards) (parse-input "test_input.txt")))
@@ -94,5 +96,9 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
     ;(format #t "~%array values: ")
     ;(array-for-each (lambda (i) (format #t "(~a ~a) " (i 'get-value) (i 'called?))) boards)
     ;(format #t "~%test element: ~a~%" ((array-ref boards 0 0 0) 'get-value))
-    (map (cut call-and-check boards <>) numbers)))
+    (let ((winning-board (call/cc (lambda (break)
+			      (map (cut call-and-check break boards <>) numbers)))))
+      (format #t "~%~%WINNING BOARD: ~a~%" winning-board))))
+      ;(array-for-each (lambda (i) (format #t "(~a ~a) " (i 'get-value) (i 'called?))) slice))))
+      
     
