@@ -105,7 +105,7 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
 	    (unmarked-sum 0))
 	(array-for-each (lambda (i)
 			  (format #t "(~a ~a) " (i 'get-value) (i 'called?))
-			  (when (i 'called?) (set! unmarked-sum (+ unmarked-sum (i 'get-value)))))
+			  (when (not (i 'called?)) (set! unmarked-sum (+ unmarked-sum (i 'get-value)))))
 			winning-board)
 	(format #t "~%~%unmarked sum: ~a~%" unmarked-sum)
 	(format #t "~%~%final score: ~a~%" (* unmarked-sum winning-num))))))    
