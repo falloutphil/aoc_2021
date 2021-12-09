@@ -56,6 +56,7 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
   "Exit via continuation if any col or row is all called." 
   (let board-loop ((n 0))
     (let ((test-board (array-cell-ref boards n)))
+      ;; col-loop and row-loop should be refactored into one!
       (let col-loop ((x 0))
 	(let ((slice (make-shared-array test-board
 			   (lambda (i) (list i x)) ;; take slice holding column constant as x
