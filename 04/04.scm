@@ -96,9 +96,9 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
     ;(format #t "~%array values: ")
     ;(array-for-each (lambda (i) (format #t "(~a ~a) " (i 'get-value) (i 'called?))) boards)
     ;(format #t "~%test element: ~a~%" ((array-ref boards 0 0 0) 'get-value))
-    (let ((winning-board (call/cc (lambda (break)
+    (let ((winning-idx (call/cc (lambda (break)
 			      (map (cut call-and-check break boards <>) numbers)))))
-      (format #t "~%~%WINNING BOARD: ~a~%" winning-board))))
-      ;(array-for-each (lambda (i) (format #t "(~a ~a) " (i 'get-value) (i 'called?))) slice))))
-      
-    
+      (format #t "~%~%WINNING BOARD: ~a~%" winning-idx)
+      (let ((winning-board (array-cell-ref boards winning-idx)))
+	(array-for-each (lambda (i) (format #t "(~a ~a) " (i 'get-value) (i 'called?))) winning-board)
+	))))    
