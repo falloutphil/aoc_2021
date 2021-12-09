@@ -23,12 +23,12 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
 
     (lambda args
       (apply
-        (case (car args)
-          ((called?) called?)
-          ((!called) !called)
-          ((get-value) get-value)
-          (else (error "Invalid method!")))
-        (cdr args)))))
+       (case (car args)
+         ((called?) called?)
+         ((!called) !called)
+         ((get-value) get-value)
+         (else (error "Invalid method!")))
+       (cdr args)))))
 
 
 (define (string->bingo-number s)
@@ -65,11 +65,15 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
                                     '(0 4)))
           (bingo #t))
       (array-for-each (lambda (i)
-                        ;(format #t "~%~a slice: (~a ~a) " direction (i 'get-value) (i 'called?))
+                        (format #t "~%~a slice: (~a ~a) " direction (i 'get-value) (i 'called?))
                         (set! bingo (and bingo (i 'called?))))
                       slice)
-      ;(format #t "~%bingo: ~a" bingo)
-      (when bingo (break `(,board-idx . ,called-number))))
+      (format #t "~%bingo: ~a" bingo)
+      (when bingo
+        (begin
+          (display "BINGO BINGO")
+          (display `(,board-idx . ,called-number))
+          (break `(,board-idx . ,called-number)))))
     (when (< x 4) (line-loop (+ x 1)))))
 
 (define (bingo? break boards num)
@@ -81,7 +85,7 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
     (let ((test-board (array-cell-ref boards n)))
       (check-line break n test-board 'col num)
       (check-line break n test-board 'row num)
-     (when (< n 99) (board-loop (+ n 1)))))) ;; don't forget to change me if the input file changes!
+      (when (< n 99) (board-loop (+ n 1)))))) ;; don't forget to change me if the input file changes!
 
 
 (define (call-and-check break arr num)
@@ -91,15 +95,25 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
   "Then check for bingo."
   (array-for-each
    (lambda (i)
+     (format #t "~%num: ~a val: ~a called: ~a" num (i 'get-value) (i 'called?))
      (when (eqv? (i 'get-value) num)
        (i '!called)))
-     ;;(format #t "~%num: ~a val: ~a called: ~a" num (i 'get-value) (i 'called?)))
    arr)
   (bingo? break arr num))
 
 
+(define (make-bingo-logger)
+  (let ((logger '()))
+    (lambda (result)
+      ;; check bingo hasn't been called for this board
+      (when (and result (not (assoc (car result) logger)))
+        (display " WRITE LOG ")
+        (set! logger (cons result logger)))
+      logger)))
+
 (define (main args)
   (let-values (((numbers boards) (parse-input "input.txt")))
+    ;; Part 1
     (let* ((result (call/cc (lambda (break)
                               (map (cut call-and-check break boards <>) numbers)))) ;; main entry point
            (winning-idx (car result))
@@ -112,4 +126,21 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
                           (when (not (i 'called?)) (set! unmarked-sum (+ unmarked-sum (i 'get-value)))))
                         winning-board)
         (format #t "~%~%unmarked sum: ~a~%" unmarked-sum)
-        (format #t "~%~%final score: ~a~%" (* unmarked-sum winning-num))))))
+        (format #t "~%~%final score: ~a~%" (* unmarked-sum winning-num)))))
+  
+  (let-values (((numbers boards) (parse-input "input.txt")))
+    ;; Part 2
+    (let ((logger (make-bingo-logger)))
+      (map (cut call-and-check logger boards <>) numbers)
+      (let* ((result (car (logger #f)))
+             (last-idx (car result))
+             (last-num (cdr result)))
+        (format #t "~%~%last index: ~a, last number: ~a~%" last-idx last-num)
+        (let ((last-board (array-cell-ref boards last-idx))
+              (unmarked-sum 0))
+          (array-for-each (lambda (i)
+                            (format #t "(~a ~a) " (i 'get-value) (i 'called?))
+                            (when (not (i 'called?)) (set! unmarked-sum (+ unmarked-sum (i 'get-value)))))
+                          last-board)
+          (format #t "~%~%unmarked sum: ~a~%" unmarked-sum)
+          (format #t "~%~%final score: ~a~%" (* unmarked-sum last-num)))))))
