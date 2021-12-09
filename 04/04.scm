@@ -99,6 +99,17 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
   (bingo? bingo-action arr num))
 
 
+(define (calc-unmarked-sum boards idx)
+  "Calculate the unmarked sum of the board at the index."
+  (let ((board (array-cell-ref boards idx))
+	(unmarked-sum 0))
+    (array-for-each (lambda (i)
+		      (format #t "(~a ~a) " (i 'get-value) (i 'called?))
+                      (when (not (i 'called?))
+			(set! unmarked-sum (+ unmarked-sum (i 'get-value)))))
+                    board)
+    unmarked-sum))
+
 ;; There's nothing like lazily jamming a part 2 solution into a part 1 framework!
 (define (make-bingo-logger boards)
   "Keeps a log of the first bingo call for each board in an assoc list.
@@ -111,13 +122,7 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
       ;; check bingo hasn't been called for this board
       (when (and result (not (assoc (car result) bingo-assoc)))
         (set! bingo-assoc (cons result bingo-assoc))
-	(set! unmarked-sum 0) ;; we only care about last result
-	(let ((last-board (array-cell-ref boards (car result))))
-          (array-for-each (lambda (i)
-			    ;(format #t "(~a ~a) " (i 'get-value) (i 'called?))
-                            (when (not (i 'called?))
-			      (set! unmarked-sum (+ unmarked-sum (i 'get-value)))))
-                          last-board)))
+	(set! unmarked-sum (calc-unmarked-sum boards (car result))))
       `(,bingo-assoc . ,unmarked-sum))))
 
 (define (main args)
@@ -128,19 +133,14 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
            (winning-idx (car result))
            (winning-num (cdr result)))
       (format #t "~%~%winning index: ~a, winning number: ~a~%" winning-idx winning-num)
-      (let ((winning-board (array-cell-ref boards winning-idx))
-            (unmarked-sum 0))
-        (array-for-each (lambda (i)
-                          (format #t "(~a ~a) " (i 'get-value) (i 'called?))
-                          (when (not (i 'called?)) (set! unmarked-sum (+ unmarked-sum (i 'get-value)))))
-                        winning-board)
+      (let ((unmarked-sum (calc-unmarked-sum boards winning-idx)))
         (format #t "~%~%unmarked sum: ~a~%" unmarked-sum)
-        (format #t "~%~%final score: ~a~%" (* unmarked-sum winning-num)))))
+        (format #t "~%~%part 1 final score: ~a~%~%" (* unmarked-sum winning-num)))))
   
   (let-values (((numbers boards) (parse-input "input.txt")))
     ;; Part 2
     (let ((logger (make-bingo-logger boards)))
-      (for-each (cut call-and-check logger boards <>) numbers)
+      (for-each (cut call-and-check logger boards <>) numbers) ;; main entry point
       (let* ((logger+unmarked (logger #f))
 	     (result (caar logger+unmarked))
 	     (unmarked-sum (cdr logger+unmarked))
@@ -148,4 +148,4 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
              (last-num (cdr result)))
         (format #t "~%~%last index: ~a, last number: ~a~%" last-idx last-num)
         (format #t "~%~%unmarked sum: ~a~%" unmarked-sum)
-        (format #t "~%~%final score: ~a~%" (* unmarked-sum last-num))))))
+        (format #t "~%~%part 2 final score: ~a~%" (* unmarked-sum last-num))))))
