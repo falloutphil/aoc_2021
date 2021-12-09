@@ -11,6 +11,7 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
   #:use-module (srfi srfi-42)) ;; list-ec
 
 (define (make-bingo-number n)
+  "Stateful number object that knows if it's been called."
   (let ((called #f)
 	(value n))
     (define (called?)
@@ -43,14 +44,16 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
 	     (boards-str (delete '() (map (compose (cut delete "" <>) (cut string-split <> #\ ))
              				  (cdr lines))))
 	     (flat-boards ((compose (cut list->array 1 <>) (cut map string->bingo-number <>) concatenate) boards-str)))
-	;(format #t "~%numbers: ~a~%" numbers)
-	;(format #t "~%boards-str: ~a~%" boards-str)
 	(values
 	 numbers
-	 (make-shared-array flat-boards (lambda (i j k) (list (+ (* i 25) (* j 5) k))) 100 5 5)))))) ;; grep '^$' input.txt | wc -l 
+	 (make-shared-array flat-boards (lambda (i j k) (list (+ (* i 25) (* j 5) k))) 100 5 5)))))) ;; HINT: grep '^$' input.txt | wc -l 
 
-;; use a continuation to break on bingo!
-(define (slicer break boards num)
+
+(define (bingo? break boards num)
+  "Called after each number is drawn."
+  "Loop over each bingo board."
+  "Look at all column-wise and row-wise slices."
+  "Exit via continuation if any col or row is all called." 
   (let board-loop ((n 0))
     (let ((test-board (array-cell-ref boards n)))
       (let col-loop ((x 0))
@@ -58,44 +61,42 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
 			   (lambda (i) (list i x)) ;; take slice holding column constant as x
 			   '(0 4)))
 	      (bingo #t))
-	  (array-for-each (lambda (i) (set! bingo (and bingo (i 'called?)))
-				  (format #t "~%col slice: (~a ~a) " (i 'get-value) (i 'called?))) slice)
-	  (format #t "~%bingo: ~a" bingo)
-	  ;; if bingo break here!
-	  (when bingo (break (list n num)))
-	  )
+	  (array-for-each (lambda (i) (set! bingo (and bingo (i 'called?))))
+				  ;(format #t "~%col slice: (~a ~a) " (i 'get-value) (i 'called?)))
+			  slice)
+	  ;;(format #t "~%bingo: ~a" bingo)
+	  (when bingo (break (list n num))))
 	(when (< x 4) (col-loop (+ x 1))))
       (let row-loop ((x 0))
 	(let ((slice (make-shared-array test-board
 			   (lambda (i) (list x i)) ;; take slice holding row constant as x
 			   '(0 4)))
 	      (bingo #t))
-	  (array-for-each (lambda (i) (set! bingo (and bingo (i 'called?)))
-				  (format #t "~%row slice: (~a ~a) " (i 'get-value) (i 'called?))) slice)
-	  (format #t "~%bingo: ~a" bingo)
-	  ;; if bingo break here!
-	  (when bingo (break (list n num)))
-	  )
+	  (array-for-each (lambda (i) (set! bingo (and bingo (i 'called?))))
+				  ;(format #t "~%row slice: (~a ~a) " (i 'get-value) (i 'called?)))
+			  slice)
+	  ;;(format #t "~%bingo: ~a" bingo)
+	  (when bingo (break (list n num))))
 	(when (< x 4) (row-loop (+ x 1))))
-    (when (< n 99) (board-loop (+ n 1)))))) ;; don't forget to change me!
+    (when (< n 99) (board-loop (+ n 1)))))) ;; don't forget to change me if the input file changes!
 
 
 (define (call-and-check break arr num)
+  "Loop over 3D array of boards."
+  "For each number check against called number."
+  "Set called on any object that matches."
+  "Then check for bingo."
   (array-for-each
    (lambda (i)
      (when (eqv? (i 'get-value) num)
-       (i '!called))
-     (format #t "~%num: ~a val: ~a called: ~a" num (i 'get-value) (i 'called?)))
+       (i '!called)))
+     ;;(format #t "~%num: ~a val: ~a called: ~a" num (i 'get-value) (i 'called?)))
    arr)
-  (slicer break arr num))
+  (bingo? break arr num))
+
 
 (define (main args)
   (let-values (((numbers boards) (parse-input "input.txt")))
-    ;(format #t "~%numbers: ~a~%" numbers)
-    ;(format #t "~%first board: ~a~%" (array-cell-ref boards 0))
-    ;(format #t "~%array values: ")
-    ;(array-for-each (lambda (i) (format #t "(~a ~a) " (i 'get-value) (i 'called?))) boards)
-    ;(format #t "~%test element: ~a~%" ((array-ref boards 0 0 0) 'get-value))
     (let* ((result (call/cc (lambda (break)
 			      (map (cut call-and-check break boards <>) numbers))))
 	   (winning-idx (car result))
@@ -108,4 +109,4 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
 			  (when (not (i 'called?)) (set! unmarked-sum (+ unmarked-sum (i 'get-value)))))
 			winning-board)
 	(format #t "~%~%unmarked sum: ~a~%" unmarked-sum)
-	(format #t "~%~%final score: ~a~%" (* unmarked-sum winning-num))))))    
+	(format #t "~%~%final score: ~a~%" (* unmarked-sum winning-num))))))
