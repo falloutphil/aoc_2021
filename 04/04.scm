@@ -54,9 +54,9 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
   (let line-loop ((x 0))
     (define (make-slicer direction)
       "Slice a column or row at position i."
-      (cond
-        ((eq? direction 'col) (lambda (i) (list i x)))
-        ((eq? direction 'row) (lambda (i) (list x i)))
+      (case direction
+        ((col) (lambda (i) (list i x)))
+        ((row) (lambda (i) (list x i)))
         (else (error "Invalid direction!"))))
     (let ((slice (make-shared-array test-board
                                     (make-slicer direction) ;; take slice holding row/col constant
