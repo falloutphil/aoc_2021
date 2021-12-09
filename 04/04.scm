@@ -47,7 +47,7 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
 	;(format #t "~%boards-str: ~a~%" boards-str)
 	(values
 	 numbers
-	 (make-shared-array flat-boards (lambda (i j k) (list (+ (* i 25) (* j 5) k))) 3 5 5))))))
+	 (make-shared-array flat-boards (lambda (i j k) (list (+ (* i 25) (* j 5) k))) 100 5 5)))))) ;; grep '^$' input.txt | wc -l 
 
 ;; use a continuation to break on bingo!
 (define (slicer break boards num)
@@ -77,7 +77,7 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
 	  (when bingo (break (list n num)))
 	  )
 	(when (< x 4) (row-loop (+ x 1))))
-    (when (< n 2) (board-loop (+ n 1))))))
+    (when (< n 99) (board-loop (+ n 1)))))) ;; don't forget to change me!
 
 
 (define (call-and-check break arr num)
@@ -88,9 +88,9 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
      (format #t "~%num: ~a val: ~a called: ~a" num (i 'get-value) (i 'called?)))
    arr)
   (slicer break arr num))
-  
+
 (define (main args)
-  (let-values (((numbers boards) (parse-input "test_input.txt")))
+  (let-values (((numbers boards) (parse-input "input.txt")))
     ;(format #t "~%numbers: ~a~%" numbers)
     ;(format #t "~%first board: ~a~%" (array-cell-ref boards 0))
     ;(format #t "~%array values: ")
