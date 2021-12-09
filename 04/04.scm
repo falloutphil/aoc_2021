@@ -65,13 +65,13 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
                                     '(0 4)))
           (bingo #t))
       (array-for-each (lambda (i)
-                        (format #t "~%~a slice: (~a ~a) " direction (i 'get-value) (i 'called?))
+                        ;(format #t "~%~a slice: (~a ~a) " direction (i 'get-value) (i 'called?))
                         (set! bingo (and bingo (i 'called?))))
                       slice)
       (format #t "~%bingo: ~a" bingo)
       (when bingo
         (begin
-          (display "BINGO BINGO")
+          ;(display "BINGO BINGO")
           (display `(,board-idx . ,called-number))
           (break `(,board-idx . ,called-number)))))
     (when (< x 4) (line-loop (+ x 1)))))
@@ -95,23 +95,31 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
   "Then check for bingo."
   (array-for-each
    (lambda (i)
-     (format #t "~%num: ~a val: ~a called: ~a" num (i 'get-value) (i 'called?))
+     ;(format #t "~%num: ~a val: ~a called: ~a" num (i 'get-value) (i 'called?))
      (when (eqv? (i 'get-value) num)
        (i '!called)))
    arr)
   (bingo? break arr num))
 
 
-(define (make-bingo-logger)
-  (let ((logger '()))
+(define (make-bingo-logger boards)
+  (let ((logger '())
+	(unmarked-sum 0))
     (lambda (result)
       ;; check bingo hasn't been called for this board
       (when (and result (not (assoc (car result) logger)))
-        (display " WRITE LOG ")
-        (set! logger (cons result logger)))
-      logger)))
+        (set! logger (cons result logger))
+	(set! unmarked-sum 0)
+	(let ((last-board (array-cell-ref boards (car result))))
+          (array-for-each (lambda (i)
+			    ;(format #t "(~a ~a) " (i 'get-value) (i 'called?))
+                            (when (not (i 'called?))
+			      (set! unmarked-sum (+ unmarked-sum (i 'get-value)))))
+                          last-board)))
+      `(,logger . ,unmarked-sum))))
 
 (define (main args)
+  #!
   (let-values (((numbers boards) (parse-input "input.txt")))
     ;; Part 1
     (let* ((result (call/cc (lambda (break)
@@ -127,20 +135,18 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
                         winning-board)
         (format #t "~%~%unmarked sum: ~a~%" unmarked-sum)
         (format #t "~%~%final score: ~a~%" (* unmarked-sum winning-num)))))
+  !#
+
   
   (let-values (((numbers boards) (parse-input "input.txt")))
     ;; Part 2
-    (let ((logger (make-bingo-logger)))
+    (let ((logger (make-bingo-logger boards)))
       (map (cut call-and-check logger boards <>) numbers)
-      (let* ((result (car (logger #f)))
+      (let* ((result+unmarked (logger #f))
+	     (result (caar result+unmarked))
+	     (unmarked-sum (cdr result+unmarked))
              (last-idx (car result))
              (last-num (cdr result)))
         (format #t "~%~%last index: ~a, last number: ~a~%" last-idx last-num)
-        (let ((last-board (array-cell-ref boards last-idx))
-              (unmarked-sum 0))
-          (array-for-each (lambda (i)
-                            (format #t "(~a ~a) " (i 'get-value) (i 'called?))
-                            (when (not (i 'called?)) (set! unmarked-sum (+ unmarked-sum (i 'get-value)))))
-                          last-board)
-          (format #t "~%~%unmarked sum: ~a~%" unmarked-sum)
-          (format #t "~%~%final score: ~a~%" (* unmarked-sum last-num)))))))
+        (format #t "~%~%unmarked sum: ~a~%" unmarked-sum)
+        (format #t "~%~%final score: ~a~%" (* unmarked-sum last-num))))))
