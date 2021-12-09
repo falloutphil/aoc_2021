@@ -92,7 +92,7 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
   "Then check for bingo."
   (array-for-each
    (lambda (i)
-     ;(format #t "~%num: ~a val: ~a called: ~a" num (i 'get-value) (i 'called?))
+     ;; (format #t "~%num: ~a val: ~a called: ~a" num (i 'get-value) (i 'called?))
      (when (eqv? (i 'get-value) num)
        (i '!called)))
    arr)
@@ -104,7 +104,7 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
   (let ((board (array-cell-ref boards idx))
 	(unmarked-sum 0))
     (array-for-each (lambda (i)
-		      (format #t "(~a ~a) " (i 'get-value) (i 'called?))
+		      ;; (format #t "(~a ~a) " (i 'get-value) (i 'called?))
                       (when (not (i 'called?))
 			(set! unmarked-sum (+ unmarked-sum (i 'get-value)))))
                     board)
