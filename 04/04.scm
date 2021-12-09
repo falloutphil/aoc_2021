@@ -49,7 +49,7 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
          (make-shared-array flat-boards (lambda (i j k) (list (+ (* i 25) (* j 5) k))) 100 5 5)))))) ;; HINT: grep '^$' input.txt | wc -l 
 
 
-(define (check-line break board-idx test-board direction called-number)
+(define (check-line bingo-action board-idx test-board direction called-number)
   "Check bingo lines for a specific board in a specific direction for one called number."
   (let line-loop ((x 0))
 
@@ -70,22 +70,22 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
                       slice)
       ;(format #t "~%bingo: ~a" bingo)
       (when bingo
-        (break `(,board-idx . ,called-number))))
+        (bingo-action `(,board-idx . ,called-number))))
     (when (< x 4) (line-loop (+ x 1)))))
 
-(define (bingo? break boards num)
+(define (bingo? bingo-action boards num)
   "Called after each number is drawn."
   "Loop over each bingo board."
   "Look at all column-wise and row-wise slices."
   "Exit via continuation if any col or row is all called." 
   (let board-loop ((n 0))
     (let ((test-board (array-cell-ref boards n)))
-      (check-line break n test-board 'col num)
-      (check-line break n test-board 'row num)
+      (check-line bingo-action n test-board 'col num)
+      (check-line bingo-action n test-board 'row num)
       (when (< n 99) (board-loop (+ n 1)))))) ;; don't forget to change me if the input file changes!
 
 
-(define (call-and-check break arr num)
+(define (call-and-check bingo-action arr num)
   "Loop over 3D array of boards."
   "For each number check against called number."
   "Set called on any object that matches."
@@ -96,30 +96,35 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
      (when (eqv? (i 'get-value) num)
        (i '!called)))
    arr)
-  (bingo? break arr num))
+  (bingo? bingo-action arr num))
 
 
+;; There's nothing like lazily jamming a part 2 solution into a part 1 framework!
 (define (make-bingo-logger boards)
-  (let ((logger '())
+  "Keeps a log of the first bingo call for each board in an assoc list.
+   Must calculate the unmarked-sum immediately whilst board state is correct.
+   The last unmarked-sum must be the last 'first bingo' for a board.
+   Returns the assoc list and unmarked sum when passed dummy #f."
+  (let ((bingo-assoc '())
 	(unmarked-sum 0))
     (lambda (result)
       ;; check bingo hasn't been called for this board
-      (when (and result (not (assoc (car result) logger)))
-        (set! logger (cons result logger))
-	(set! unmarked-sum 0)
+      (when (and result (not (assoc (car result) bingo-assoc)))
+        (set! bingo-assoc (cons result bingo-assoc))
+	(set! unmarked-sum 0) ;; we only care about last result
 	(let ((last-board (array-cell-ref boards (car result))))
           (array-for-each (lambda (i)
 			    ;(format #t "(~a ~a) " (i 'get-value) (i 'called?))
                             (when (not (i 'called?))
 			      (set! unmarked-sum (+ unmarked-sum (i 'get-value)))))
                           last-board)))
-      `(,logger . ,unmarked-sum))))
+      `(,bingo-assoc . ,unmarked-sum))))
 
 (define (main args)
   (let-values (((numbers boards) (parse-input "input.txt")))
     ;; Part 1
     (let* ((result (call/cc (lambda (break)
-                              (map (cut call-and-check break boards <>) numbers)))) ;; main entry point
+                              (for-each (cut call-and-check break boards <>) numbers)))) ;; main entry point
            (winning-idx (car result))
            (winning-num (cdr result)))
       (format #t "~%~%winning index: ~a, winning number: ~a~%" winning-idx winning-num)
@@ -135,10 +140,10 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
   (let-values (((numbers boards) (parse-input "input.txt")))
     ;; Part 2
     (let ((logger (make-bingo-logger boards)))
-      (map (cut call-and-check logger boards <>) numbers)
-      (let* ((result+unmarked (logger #f))
-	     (result (caar result+unmarked))
-	     (unmarked-sum (cdr result+unmarked))
+      (for-each (cut call-and-check logger boards <>) numbers)
+      (let* ((logger+unmarked (logger #f))
+	     (result (caar logger+unmarked))
+	     (unmarked-sum (cdr logger+unmarked))
              (last-idx (car result))
              (last-num (cdr result)))
         (format #t "~%~%last index: ~a, last number: ~a~%" last-idx last-num)
