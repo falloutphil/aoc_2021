@@ -139,13 +139,13 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
   
   (let-values (((numbers boards) (parse-input "input.txt")))
     ;; Part 2
-    (let ((logger (make-bingo-logger boards)))
-      (for-each (cut call-and-check logger boards <>) numbers) ;; main entry point
-      (let* ((logger+unmarked (logger #f))
-	     (result (caar logger+unmarked))
-	     (unmarked-sum (cdr logger+unmarked))
-             (last-idx (car result))
-             (last-num (cdr result)))
+    (let ((bingo-log (make-bingo-logger boards)))
+      (for-each (cut call-and-check bingo-log boards <>) numbers) ;; main entry point
+      (let* ((result (bingo-log #f))
+	     (last-bingo (caar result))
+	     (unmarked-sum (cdr result))
+             (last-idx (car last-bingo))
+             (last-num (cdr last-bingo)))
         (format #t "~%~%last index: ~a, last number: ~a~%" last-idx last-num)
         (format #t "~%~%unmarked sum: ~a~%" unmarked-sum)
         (format #t "~%~%part 2 final score: ~a~%" (* unmarked-sum last-num))))))
