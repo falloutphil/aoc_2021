@@ -52,12 +52,14 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
 (define (check-line break board-idx test-board direction called-number)
   "Check bingo lines for a specific board in a specific direction for one called number."
   (let line-loop ((x 0))
+
     (define (make-slicer direction)
       "Slice a column or row at position i."
       (case direction
         ((col) (lambda (i) (list i x)))
         ((row) (lambda (i) (list x i)))
         (else (error "Invalid direction!"))))
+
     (let ((slice (make-shared-array test-board
                                     (make-slicer direction) ;; take slice holding row/col constant
                                     '(0 4)))
