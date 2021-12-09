@@ -68,12 +68,9 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
                         ;(format #t "~%~a slice: (~a ~a) " direction (i 'get-value) (i 'called?))
                         (set! bingo (and bingo (i 'called?))))
                       slice)
-      (format #t "~%bingo: ~a" bingo)
+      ;(format #t "~%bingo: ~a" bingo)
       (when bingo
-        (begin
-          ;(display "BINGO BINGO")
-          (display `(,board-idx . ,called-number))
-          (break `(,board-idx . ,called-number)))))
+        (break `(,board-idx . ,called-number))))
     (when (< x 4) (line-loop (+ x 1)))))
 
 (define (bingo? break boards num)
@@ -119,7 +116,6 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
       `(,logger . ,unmarked-sum))))
 
 (define (main args)
-  #!
   (let-values (((numbers boards) (parse-input "input.txt")))
     ;; Part 1
     (let* ((result (call/cc (lambda (break)
@@ -135,8 +131,6 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
                         winning-board)
         (format #t "~%~%unmarked sum: ~a~%" unmarked-sum)
         (format #t "~%~%final score: ~a~%" (* unmarked-sum winning-num)))))
-  !#
-
   
   (let-values (((numbers boards) (parse-input "input.txt")))
     ;; Part 2
