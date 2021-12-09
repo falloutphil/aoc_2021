@@ -67,7 +67,7 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
                         (set! bingo (and bingo (i 'called?))))
                       slice)
       ;(format #t "~%bingo: ~a" bingo)
-      (when bingo (break (list board-idx called-number))))
+      (when bingo (break `(,board-idx . ,called-number))))
     (when (< x 4) (line-loop (+ x 1)))))
 
 (define (bingo? break boards num)
@@ -99,9 +99,9 @@ exec guile -e '(@ (day04) main)' -s "$0" "$@"
 (define (main args)
   (let-values (((numbers boards) (parse-input "input.txt")))
     (let* ((result (call/cc (lambda (break)
-                              (map (cut call-and-check break boards <>) numbers))))
+                              (map (cut call-and-check break boards <>) numbers)))) ;; main entry point
            (winning-idx (car result))
-           (winning-num (cadr result)))
+           (winning-num (cdr result)))
       (format #t "~%~%winning index: ~a, winning number: ~a~%" winning-idx winning-num)
       (let ((winning-board (array-cell-ref boards winning-idx))
             (unmarked-sum 0))
