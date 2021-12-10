@@ -6,23 +6,8 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
   #:export (main)
   #:use-module (ice-9 rdelim) ;; read-line
   #:use-module (srfi srfi-1) ;; iota, last
-  #:use-module (srfi srfi-11) ;; let-values
   #:use-module (srfi srfi-26) ;; cut
   #:use-module (srfi srfi-42)) ;; list-ec
-
-
-;; for each horizontal/vertical line find points
-
-;; these points can just be stored in a hash map
-
-;; each value of hash map can be incremented
-
-;; then we filter the hash map by values >1
-
-;; the fact it is a coordinate system is irrelevant,
-;; this is just a count how many things exist at each
-;; symbol, and a need to generate symbols between points.
-
 
 (define (split-coord coord-str)
   (map string->number (string-split coord-str #\,)))
@@ -63,15 +48,16 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
 
   
 (define (main args)
-  (let* ((coords (file->coords "test_input.txt"))
+  (let* ((coords (file->coords "input.txt"))
          (consec-coords (filter consecutive? coords))
          (all-points (concatenate (map expand-pair consec-coords))))
-    (format #t "~%~%coords: ~a~%" coords)
-    (format #t "~%~%consecutive coords: ~a~%" consec-coords)
-    (format #t "~%~%all coords: ~a~%" all-points)
+    ;;(format #t "~%~%coords: ~a~%" coords)
+    ;;(format #t "~%~%consecutive coords: ~a~%" consec-coords)
+    ;;(format #t "~%~%all coords: ~a~%" all-points)
     (let ((point-count (make-hash-table 500)))
       (for-each
        (lambda (key) (hash-set! point-count key
                                 (+ (hash-ref point-count key 0) 1)))
        all-points)
-      (format #t "~%~%2 or more line overlap count: ~a~%" (hash-count (lambda (k v) (> v 1)) point-count)))))
+      (format #t "~%~%2 or more lines overlap count: ~a~%"
+	      (hash-count (lambda (k v) (> v 1)) point-count)))))
