@@ -73,4 +73,5 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
       (for-each
        (lambda (key) (hash-set! point-count key
                                 (+ (hash-ref point-count key 0) 1)))
-       all-points))))
+       all-points)
+      (format #t "~%~%2 or more line overlap count: ~a~%" (hash-count (lambda (k v) (> v 1)) point-count)))))
