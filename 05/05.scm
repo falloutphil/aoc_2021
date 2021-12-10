@@ -40,7 +40,8 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
 
 (define (consecutive? p)
   "Does x=x or y=y across the two coords?"
-  (or (eqv? (caar p) (caadr p)) (eqv? (cadar p) (cadadr p))))
+  (or (eqv? (caar p) (caadr p))
+      (eqv? (cadar p) (cadadr p))))
   
 (define (main args)
   (let ((coords (file->coords "test_input.txt")))
