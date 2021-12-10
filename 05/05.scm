@@ -29,7 +29,7 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
 
 (define (file->coords filename)
   "Read filename, and convert each line to a list.
-   Then replace all 0s with #f."
+   Then split on space and process first and last elements as coords."
   (call-with-input-file filename
     (lambda (p)
       (map (compose (lambda (str-lst)
