@@ -46,9 +46,14 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
          (high-x (max x1 x2))
          (low-x (min x1 x2))
          (high-y (max y1 y2))
-         (low-y (min y1 y2)))
-    (list (iota (- high-x low-x -1) low-x)
-          (iota (- high-y low-y -1) low-y))))
+         (low-y (min y1 y2))
+         (xs (iota (- high-x low-x -1) low-x))
+         (ys (iota (- high-y low-y -1) low-y))
+         (len-x (length xs))
+         (len-y (length ys)))
+    (apply zip (if (> len-x len-y)
+                   (list xs (iota len-x (car ys) 0))
+                   (list (iota len-y (car xs) 0) ys)))))
 
 (define (consecutive? points)
   "Does x=x or y=y across the two coords?"
