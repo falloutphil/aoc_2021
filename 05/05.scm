@@ -38,7 +38,12 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
 		    (cut string-split <> #\ ))
            (list-ec (:port line p read-line) line)))))
 
+(define (consecutive? p)
+  "Does x=x or y=y across the two coords?"
+  (or (eqv? (caar p) (caadr p)) (eqv? (cadar p) (cadadr p))))
+  
 (define (main args)
   (let ((coords (file->coords "test_input.txt")))
-    (format #t "~%~%coords: ~a~%" coords)))
+    (format #t "~%~%coords: ~a~%" coords)
+    (format #t "~%~%consecutive coords: ~a~%" (filter consecutive? coords))))
   
