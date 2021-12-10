@@ -24,3 +24,21 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
 ;; symbol, and a need to generate symbols between points.
 
 
+(define (split-coord coord-str)
+  (map string->number (string-split coord-str #\,)))
+
+(define (file->coords filename)
+  "Read filename, and convert each line to a list.
+   Then replace all 0s with #f."
+  (call-with-input-file filename
+    (lambda (p)
+      (map (compose (lambda (str-lst)
+		      (list (split-coord (car str-lst))
+			    (split-coord (last str-lst))))
+		    (cut string-split <> #\ ))
+           (list-ec (:port line p read-line) line)))))
+
+(define (main args)
+  (let ((coords (file->coords "test_input.txt")))
+    (format #t "~%~%coords: ~a~%" coords)))
+  
