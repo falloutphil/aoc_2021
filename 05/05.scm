@@ -39,7 +39,7 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
            (list-ec (:port line p read-line) line)))))
 
 (define (expand-pair points)
-  "Expand every vertical or horizontal point between sets of points."
+  "Expand every vertical or horizontal point between a pair of points."
   (let* ((x1 (caar points))
          (y1 (cadar points))
          (x2 (caadr points))
