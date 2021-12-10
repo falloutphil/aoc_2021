@@ -39,6 +39,7 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
            (list-ec (:port line p read-line) line)))))
 
 (define (expand-pair points)
+  "Expand every vertical or horizontal point between sets of points."
   (let* ((x1 (caar points))
          (y1 (cadar points))
          (x2 (caadr points))
@@ -63,7 +64,7 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
 (define (main args)
   (let* ((coords (file->coords "test_input.txt"))
          (consec-coords (filter consecutive? coords))
-         (all-points (map expand-pair consec-coords)))
+         (all-points (concatenate (map expand-pair consec-coords))))
     (format #t "~%~%coords: ~a~%" coords)
     (format #t "~%~%consecutive coords: ~a~%" consec-coords)
-    (format #t "~%~%transformed coords: ~a~%" all-points)))
+    (format #t "~%~%all coords: ~a~%" all-points)))
