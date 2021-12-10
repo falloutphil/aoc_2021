@@ -5,7 +5,7 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
 (define-module (day05)
   #:export (main)
   #:use-module (ice-9 rdelim) ;; read-line
-  #:use-module (srfi srfi-1) ;; concatenate
+  #:use-module (srfi srfi-1) ;; iota, last
   #:use-module (srfi srfi-11) ;; let-values
   #:use-module (srfi srfi-26) ;; cut
   #:use-module (srfi srfi-42)) ;; list-ec
@@ -33,18 +33,32 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
   (call-with-input-file filename
     (lambda (p)
       (map (compose (lambda (str-lst)
-		      (list (split-coord (car str-lst))
-			    (split-coord (last str-lst))))
-		    (cut string-split <> #\ ))
+                      (list (split-coord (car str-lst))
+                            (split-coord (last str-lst))))
+                    (cut string-split <> #\ ))
            (list-ec (:port line p read-line) line)))))
+
+(define (expand-pair points)
+  (let* ((x1 (caar points))
+         (y1 (cadar points))
+         (x2 (caadr points))
+         (y2 (cadadr points))
+         (high-x (max x1 x2))
+         (low-x (min x1 x2))
+         (high-y (max y1 y2))
+         (low-y (min y1 y2)))
+    (list (iota (- high-x low-x -1) low-x)
+          (iota (- high-y low-y -1) low-y))))
 
 (define (consecutive? points)
   "Does x=x or y=y across the two coords?"
   (or (eqv? (caar points) (caadr points))
       (eqv? (cadar points) (cadadr points))))
-  
+
 (define (main args)
-  (let ((coords (file->coords "test_input.txt")))
+  (let* ((coords (file->coords "test_input.txt"))
+         (consec-coords (filter consecutive? coords))
+         (all-points (map expand-pair consec-coords)))
     (format #t "~%~%coords: ~a~%" coords)
-    (format #t "~%~%consecutive coords: ~a~%" (filter consecutive? coords))))
-  
+    (format #t "~%~%consecutive coords: ~a~%" consec-coords)
+    (format #t "~%~%transformed coords: ~a~%" all-points)))
