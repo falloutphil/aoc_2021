@@ -61,10 +61,16 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
   (or (eqv? (caar points) (caadr points))
       (eqv? (cadar points) (cadadr points))))
 
+  
 (define (main args)
   (let* ((coords (file->coords "test_input.txt"))
          (consec-coords (filter consecutive? coords))
          (all-points (concatenate (map expand-pair consec-coords))))
     (format #t "~%~%coords: ~a~%" coords)
     (format #t "~%~%consecutive coords: ~a~%" consec-coords)
-    (format #t "~%~%all coords: ~a~%" all-points)))
+    (format #t "~%~%all coords: ~a~%" all-points)
+    (let ((point-count (make-hash-table 500)))
+      (for-each
+       (lambda (key) (hash-set! point-count key
+                                (+ (hash-ref point-count key 0) 1)))
+       all-points))))
