@@ -24,11 +24,23 @@ exec guile -e '(@ (day06) main)' -s "$0" "$@"
 
 (define (school-evolve fishes day)
   "Tick forwards one day."
-  ;(format #t "~%~%fish: ~a length: ~a~%" fishes (length fishes))
-  (if (> day 80)
+  (format #t "~%~%day: ~a length: ~a~%" day (length fishes))
+  (if (>= day 80)
       (length fishes)
       (school-evolve (concatenate (map fish-evolve fishes)) (+ day 1))))
 
+(define (fish-bloodline fishes day)
+  (format #t "~%~%day: ~a length: ~a~%" day (length fishes))
+  (if (>= day 256)
+      (length fishes)
+      (fish-bloodline (concatenate (map fish-evolve fishes)) (+ day 1))))
+
+(define (school-evolve-p2 fishes)
+  "Tick forwards one day."
+  (reduce + 0 (map (cut fish-bloodline <> 0) (map list fishes))))
+  
+      
+
 (define (main args)
-  (let ((fishes (get-input "input.txt")))
-    (format #t "~%~%part 1: ~a~%" (school-evolve fishes 1))))
+  (let ((fishes (get-input "test_input.txt")))
+    (format #t "~%~%part 1: ~a~%" (school-evolve-p2 fishes))))
