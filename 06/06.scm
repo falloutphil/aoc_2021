@@ -6,8 +6,13 @@ exec guile -e '(@ (day06) main)' -s "$0" "$@"
   #:export (main)
   #:use-module (ice-9 rdelim) ;; read-line
   #:use-module (srfi srfi-1) ;; iota, last
-  #:use-module (srfi srfi-26) ;; cut
-  #:use-module (srfi srfi-42)) ;; list-ec
+  #:use-module (srfi srfi-26)) ;; cut
 
-
-(define (main args))
+(define (get-input filename)
+  "Take first line of filename as input."
+  (call-with-input-file filename read-line))
+  
+  
+(define (main args)
+  (let ((input (get-input "test_input.txt")))
+    (format #t "~%~%input: ~a~%" input)))
