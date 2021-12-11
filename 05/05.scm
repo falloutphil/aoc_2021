@@ -37,27 +37,46 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
          (ys (iota (- high-y low-y -1) low-y))
          (len-x (length xs))
          (len-y (length ys)))
-    (apply zip (if (> len-x len-y)
-                   (list xs (iota len-x (car ys) 0))
-                   (list (iota len-y (car xs) 0) ys)))))
+    (apply zip (cond ((> len-x len-y) (list xs (iota len-x (car ys) 0)))
+                     ((< len-x len-y) (list (iota len-y (car xs) 0) ys))
+		     (else (let ((xs (if (eqv? (car xs) x1) xs (reverse xs)))
+				 (ys (if (eqv? (car ys) y1) ys (reverse ys))))
+			     (list xs ys)))))))
 
 (define (consecutive? points)
   "Does x=x or y=y across the two coords?"
   (or (eqv? (caar points) (caadr points))
       (eqv? (cadar points) (cadadr points))))
 
-  
+(define (diagonal? points)
+  ((compose not consecutive?) points))
+
+(define (>1 _ v) (> v 1))
+
 (define (main args)
   (let* ((coords (file->coords "input.txt"))
          (consec-coords (filter consecutive? coords))
-         (all-points (concatenate (map expand-pair consec-coords))))
-    ;;(format #t "~%~%coords: ~a~%" coords)
-    ;;(format #t "~%~%consecutive coords: ~a~%" consec-coords)
-    ;;(format #t "~%~%all coords: ~a~%" all-points)
+	 (diagonal-coords (filter diagonal? coords))
+         (p1-points (concatenate (map expand-pair consec-coords)))
+	 (p2-points (concatenate (map expand-pair diagonal-coords))))
+    (format #t "~%~%coords: ~a~%" coords)
+    (format #t "~%~%consecutive coords: ~a~%" consec-coords)
+    (format #t "~%~%diagonal coords: ~a~%" diagonal-coords)
+    (format #t "~%~%p1 points: ~a~%" p1-points)
+    (format #t "~%~%p2 points: ~a~%" p2-points)
     (let ((point-count (make-hash-table 500)))
+       ;; part 1
       (for-each
        (lambda (key) (hash-set! point-count key
                                 (+ (hash-ref point-count key 0) 1)))
-       all-points)
-      (format #t "~%~%2 or more lines overlap count: ~a~%"
-	      (hash-count (lambda (k v) (> v 1)) point-count)))))
+       p1-points)
+      (format #t "~%~%part 1: ~a~%"
+	      (hash-count >1 point-count))
+
+      ;; part 2
+      (for-each
+       (lambda (key) (hash-set! point-count key
+                                (+ (hash-ref point-count key 0) 1)))
+       p2-points)
+      (format #t "~%~%part 2: ~a~%"
+	      (hash-count >1 point-count)))))
