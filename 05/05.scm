@@ -10,6 +10,7 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
   #:use-module (srfi srfi-42)) ;; list-ec
 
 (define (split-coord coord-str)
+  "x,y string -> (x y) list of ints"
   (map string->number (string-split coord-str #\,)))
 
 (define (file->coords filename)
@@ -18,6 +19,7 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
   (call-with-input-file filename
     (lambda (p)
       (map (compose (lambda (str-lst)
+		      ;; ignore "->", first and last elements contain x,y coords
                       (list (split-coord (car str-lst))
                             (split-coord (last str-lst))))
                     (cut string-split <> #\ ))
@@ -25,6 +27,7 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
 
 (define (expand-pair points)
   "Expand every point between a pair of points."
+  ;; translate x1,y1 -> xn,yn pairs, to x1,y1 x2,y2 ... xn,yn
   (let* ((x1 (caar points))
          (y1 (cadar points))
          (x2 (caadr points))
@@ -54,7 +57,9 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
   "Do the points make a 45deg diagonal?"
   ((compose not consecutive?) points))
 
-(define (>1 _ v) (> v 1))
+(define (>1 _ v)
+  "Count values with a count of more 2 or more."
+  (> v 1))
 
 (define (make-point-counter dict)
   "Return procedure to count points in provided hash table."
