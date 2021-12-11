@@ -24,7 +24,7 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
            (list-ec (:port line p read-line) line)))))
 
 (define (expand-pair points)
-  "Expand every vertical or horizontal point between a pair of points."
+  "Expand every point between a pair of points."
   (let* ((x1 (caar points))
          (y1 (cadar points))
          (x2 (caadr points))
@@ -37,8 +37,10 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
          (ys (iota (- high-y low-y -1) low-y))
          (len-x (length xs))
          (len-y (length ys)))
-    (apply zip (cond ((> len-x len-y) (list xs (iota len-x (car ys) 0)))
-                     ((< len-x len-y) (list (iota len-y (car xs) 0) ys))
+    (apply zip (cond ((> len-x len-y) (list xs (iota len-x (car ys) 0))) ;; hold y constant
+                     ((< len-x len-y) (list (iota len-y (car xs) 0) ys)) ;; hold x constant
+		     ;; points are on a diagonal - check sequences start
+		     ;; from the correct original point, if not reverse them.
 		     (else (let ((xs (if (eqv? (car xs) x1) xs (reverse xs)))
 				 (ys (if (eqv? (car ys) y1) ys (reverse ys))))
 			     (list xs ys)))))))
@@ -49,6 +51,7 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
       (eqv? (cadar points) (cadadr points))))
 
 (define (diagonal? points)
+  "Do the points make a 45deg diagonal?"
   ((compose not consecutive?) points))
 
 (define (>1 _ v) (> v 1))
@@ -59,11 +62,7 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
 	 (diagonal-coords (filter diagonal? coords))
          (p1-points (concatenate (map expand-pair consec-coords)))
 	 (p2-points (concatenate (map expand-pair diagonal-coords))))
-    (format #t "~%~%coords: ~a~%" coords)
-    (format #t "~%~%consecutive coords: ~a~%" consec-coords)
-    (format #t "~%~%diagonal coords: ~a~%" diagonal-coords)
-    (format #t "~%~%p1 points: ~a~%" p1-points)
-    (format #t "~%~%p2 points: ~a~%" p2-points)
+    
     (let ((point-count (make-hash-table 500)))
        ;; part 1
       (for-each
@@ -74,6 +73,7 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
 	      (hash-count >1 point-count))
 
       ;; part 2
+      ;; keep the lines from part 1 and add the diagonals
       (for-each
        (lambda (key) (hash-set! point-count key
                                 (+ (hash-ref point-count key 0) 1)))
