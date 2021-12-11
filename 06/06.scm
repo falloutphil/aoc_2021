@@ -6,6 +6,7 @@ exec guile -e '(@ (day06) main)' -s "$0" "$@"
   #:export (main)
   #:use-module (ice-9 rdelim) ;; read-line
   #:use-module (srfi srfi-1) ;; iota, last
+  #:use-module (srfi srfi-11) ;; let-values
   #:use-module (srfi srfi-26)) ;; cut
 
 (define (get-input filename)
@@ -30,14 +31,24 @@ exec guile -e '(@ (day06) main)' -s "$0" "$@"
       (school-evolve (concatenate (map fish-evolve fishes)) (+ day 1))))
 
 (define (fish-bloodline fishes day)
-  (format #t "~%~%day: ~a length: ~a~%" day (length fishes))
-  (if (>= day 256)
-      (length fishes)
-      (fish-bloodline (concatenate (map fish-evolve fishes)) (+ day 1))))
+  ;;(format #t "~%~%day: ~a length: ~a~%" day (length fishes))
+  (cond
+   ((eqv? day 256)
+    (length fishes))
+   ((eqv? (euclidean-remainder (length fishes) 17) 0)
+    (let-values (((f1 f2) (split-at fishes (euclidean-quotient (length fishes) 2))))
+	  (+ (fish-bloodline (concatenate (map fish-evolve f1)) (+ day 1))
+	     (fish-bloodline (concatenate (map fish-evolve f2)) (+ day 1)))))
+   (else 
+      (fish-bloodline (concatenate (map fish-evolve fishes)) (+ day 1)))))
+
+(define (bloodline-mapper fish)
+  (format #t "~%~%FISH: ~a~%" fish)
+  (fish-bloodline fish 0))
 
 (define (school-evolve-p2 fishes)
   "Tick forwards one day."
-  (reduce + 0 (map (cut fish-bloodline <> 0) (map list fishes))))
+  (reduce + 0 (map bloodline-mapper (map list fishes))))
   
       
 
