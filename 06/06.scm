@@ -72,7 +72,7 @@ exec guile -e '(@ (day06) main)' -s "$0" "$@"
   "Tick one day.  Shift the fish left and record new births."
   ;;(format #t "~%~%fish: ~a day: ~a count: ~a~%" fv day (vector-fold (lambda (_ c n) (+ c n)) 0 fv))
   (if (eqv? day 256)
-      (vector-fold (lambda (_ c n) (+ c n)) 0 fv) ;; done, sum all the fish counts for eah day
+      (vector-fold (lambda (_ c n) (+ c n)) 0 fv) ;; done, sum all the fish counts for each day
       (let ((recycled-fish (vector-ref fv 0))) ;; represents mothers and babies
 	(vector-move-left! fv 1 9 fv 0) ;; shift 1->0, 2->1, ...., 8->7.
 	(vector-set! fv 6 (+ (vector-ref fv 6) recycled-fish)) ;; mother fish are added 
@@ -84,4 +84,4 @@ exec guile -e '(@ (day06) main)' -s "$0" "$@"
   (let ((fishes (get-input "input.txt")))
     (format #t "~%~%part 1: ~a~%" (school-evolve fishes 0))
     (format #t "~%~%part 2: ~a~%" (evolve-fish-vector
-			       (initialize-fish-vector fishes) 0))))
+				   (initialize-fish-vector fishes) 0))))
