@@ -56,27 +56,28 @@ exec guile -e '(@ (day05) main)' -s "$0" "$@"
 
 (define (>1 _ v) (> v 1))
 
+(define (make-point-counter dict)
+  "Return procedure to count points in provided hash table."
+  (lambda (key)
+    (hash-set! dict key
+	       (+ (hash-ref dict key 0) 1))))
+
 (define (main args)
   (let* ((coords (file->coords "input.txt"))
          (consec-coords (filter consecutive? coords))
 	 (diagonal-coords (filter diagonal? coords))
          (p1-points (concatenate (map expand-pair consec-coords)))
-	 (p2-points (concatenate (map expand-pair diagonal-coords))))
+	 (p2-points (concatenate (map expand-pair diagonal-coords)))
+	 (point-count (make-hash-table 500))
+	 (counter (make-point-counter point-count)))
     
-    (let ((point-count (make-hash-table 500)))
        ;; part 1
-      (for-each
-       (lambda (key) (hash-set! point-count key
-                                (+ (hash-ref point-count key 0) 1)))
-       p1-points)
+      (for-each counter p1-points)
       (format #t "~%~%part 1: ~a~%"
 	      (hash-count >1 point-count))
 
       ;; part 2
       ;; keep the lines from part 1 and add the diagonals
-      (for-each
-       (lambda (key) (hash-set! point-count key
-                                (+ (hash-ref point-count key 0) 1)))
-       p2-points)
+      (for-each counter p2-points)
       (format #t "~%~%part 2: ~a~%"
-	      (hash-count >1 point-count)))))
+	      (hash-count >1 point-count))))
