@@ -15,7 +15,7 @@ Or as we have an even number of candidates we should be able to sort the list an
 (define-module (day07)
   #:export (main)
   #:use-module (ice-9 rdelim) ;; read-line
-  #:use-module (srfi srfi-1) ;; reduce
+  #:use-module (srfi srfi-1) ;; reduce, iota
   #:use-module (srfi srfi-26) ;; cut
   #:use-module (srfi srfi-43)) ;; vector-fold
 
