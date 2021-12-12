@@ -36,6 +36,11 @@ exec guile -e '(@ (day06) main)' -s "$0" "$@"
 ;; It takes hours to run but is faster than the Part 1 solution!
 ;; It tries to solve each element in the list of fishes in isolation and stores only
 ;; length of the resulting bloodline (all descendants of that one fish).
+;; This means resource use doesn't increase with input size.
+;; It takes about an hour per fish - so about 10 days to do the puzzle! 
+;; eg with test input (4.92 hours):
+;; result: 26984457539
+;; ./06.scm  17724.66s user 136.21s system 102% cpu 4:51:16.29 total
 (define (fish-bloodline fishes day)
   ;;(format #t "~%~%day: ~a length: ~a~%" day (length fishes))
   (cond
