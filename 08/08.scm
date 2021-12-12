@@ -29,6 +29,8 @@ exec guile -e '(@ (day08) main)' -s "$0" "$@"
            (list-ec (:port line p read-line) line)))))
 
 #!
+Part 1:
+
 digit vs segments - 1 4 7 8
 0 6
 1 2 *
@@ -42,6 +44,17 @@ digit vs segments - 1 4 7 8
 9 6
 
 Find via count of (2 4 3 7)
+
+Part 2:
+
+a -> Exists in 7, not in 1
+b -> Exists in 9, not in 3
+c -> Take 4, remove b, d
+d -> Exists in 8, not in 0
+e -> Exists in 8, not in 9 OR Exists in 6 not in 5
+f -> Take 1, remove c
+g -> Take 0, remove 1 (c f), remove a, b, e
+
 
 !#
 
