@@ -47,6 +47,27 @@ Find via count of (2 4 3 7)
 
 Part 2:
 
+Start with 1,4,7,8
+Found a
+Then 0,9, and 6 must be 8-1 count = 7-1 segments = 6.  Giving d,e,c
+Which one is not in 1 is 6, giving c (and f from 1)
+Which one is not in 4 is e, the other is d.
+Found d,e - I know 0,1,4,7,8,9
+Now 4-1-d is b.
+Found b
+Then 2,3,5 all have 5 segs - only one contains b, that 5.
+3 is one different from 5 - that is c
+The other one is 2
+
+a,b,c,d,e
+0,1,2,3,4,5,7,8,9
+
+Take 1 - remove c, give you f
+
+Remaining position must be g
+
+DONE!
+
 a -> Exists in 7, not in 1
 b -> Exists in 9, not in 3
 c -> Take 4, remove b, d
