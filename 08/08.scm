@@ -83,6 +83,15 @@ g -> Take 0, remove 1 (c f), remove a, b, e
   (let ((cipher-lst (cadr segments)))
     (map string-length cipher-lst))) 
 
+;; like assoc-ref but gets all values
+(define (assoc-ref-all alist ref)
+  (if (equal? alist '())
+      '()
+      (if (equal? (caar alist) ref)
+	  (cons (cdar alist) (assoc-ref-all (cdr alist) ref))
+	  (assoc-ref-all (cdr alist) ref))))
+	  
+	  
 (define (first-pass digit-segments)
   (let ((segments (string-length digit-segments)))
     (case segments
@@ -90,6 +99,7 @@ g -> Take 0, remove 1 (c f), remove a, b, e
       ((4) `(4 . ,digit-segments))
       ((3) `(7 . ,digit-segments))
       ((7) `(8 . ,digit-segments))
+      ((6) `(960 . ,digit-segments))
       (else `(#f . ,digit-segments)))))
 
 (define (find-a segments-assoc)
@@ -98,17 +108,23 @@ g -> Take 0, remove 1 (c f), remove a, b, e
 		   (string->list (assv-ref segments-assoc 7)) ;; MOST digits comes first in exp
 		   (string->list (assv-ref segments-assoc 1)))) 
 
+(define (find-cde segments-assoc)
+  (format #t "~%segment-assoc: ~a" segments-assoc)
+  (let ((960-segments (map string->list (assoc-ref-all segments-assoc 960)))
+	(8-segments (string->list (assv-ref segments-assoc 8))))
+    (map (cut lset-difference eqv? 8-segments <>) 960-segments)))
+
 (define (find-b segments-assoc)
   (format #t "~%segment-assoc: ~a" segments-assoc)
   (lset-difference eqv?
 		   (string->list (assv-ref segments-assoc 9)) ;; MOST digits comes first in exp
 		   (string->list (assv-ref segments-assoc 3)))) 
 
-  
+
 (define (determine-cryptograph one-line-segments)
   (let ((digit-lst (car one-line-segments)))
     (map first-pass digit-lst)))
-    
+
 (define (main args)
   (let* ((di (file->digit-inputs "test_input.txt"))
 	 (ciphertext-segment-counts (concatenate (map count-cipher-segments di))))
@@ -119,8 +135,7 @@ g -> Take 0, remove 1 (c f), remove a, b, e
                                          ciphertext-segment-counts))
     ;; Part 2
     (let* ((number-assocs (map determine-cryptograph di))
-	   (a-segs (map find-a number-assocs)))
-         ;;(b-segs (map find-b number-assocs))) ;; Need to know the contents of 3 and 9 first!
+	   (a-segs (map find-a number-assocs))
+           (cde-segs (map find-cde number-assocs))) ;; Need to know the contents of 3 and 9 first!
       (format #t "~%a: ~a" a-segs)
-      ;;(format #t "~%b: ~a" b-segs)
-      )))
+      (format #t "~%cde: ~a" cde-segs))))
