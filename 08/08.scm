@@ -76,7 +76,13 @@ g -> Take 0, remove 1 (c f), remove a, b, e
   (lset-difference eqv?
 		   (string->list (assv-ref segments-assoc 7)) ;; MOST digits comes first in exp
 		   (string->list (assv-ref segments-assoc 1)))) 
-   
+
+(define (find-b segments-assoc)
+  (format #t "~%segment-assoc: ~a" segments-assoc)
+  (lset-difference eqv?
+		   (string->list (assv-ref segments-assoc 9)) ;; MOST digits comes first in exp
+		   (string->list (assv-ref segments-assoc 3)))) 
+
   
 (define (determine-cryptograph one-line-segments)
   (let ((digit-lst (car one-line-segments)))
@@ -88,9 +94,12 @@ g -> Take 0, remove 1 (c f), remove a, b, e
     ;;(format #t "~%~%Input: ~a~%" ciphertext-segment-counts)
     ;; Part 1
     (format #t "~%~%Part 1: ~a~%" (count (lambda (n)
-					   (case n ((2 4 3 7) #t) (else #f)))
-					 ciphertext-segment-counts))
+                                           (case n ((2 4 3 7) #t) (else #f)))
+                                         ciphertext-segment-counts))
     ;; Part 2
     (let* ((number-assocs (map determine-cryptograph di))
-	  (a-segments (map find-a number-assocs)))
-      (format #t "~%~%Part 2: ~a~%" a-segments))))
+	   (a-segs (map find-a number-assocs)))
+         ;;(b-segs (map find-b number-assocs))) ;; Need to know the contents of 3 and 9 first!
+      (format #t "~%a: ~a" a-segs)
+      ;;(format #t "~%b: ~a" b-segs)
+      )))
