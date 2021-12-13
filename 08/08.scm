@@ -110,9 +110,15 @@ g -> Take 0, remove 1 (c f), remove a, b, e
 
 (define (find-cde segments-assoc)
   (format #t "~%segment-assoc: ~a" segments-assoc)
-  (let ((960-segments (map string->list (assoc-ref-all segments-assoc 960)))
-	(8-segments (string->list (assv-ref segments-assoc 8))))
-    (map (cut lset-difference eqv? 8-segments <>) 960-segments)))
+  (let* ((960-segments (map string->list (assoc-ref-all segments-assoc 960)))
+	 (8-segments (string->list (assv-ref segments-assoc 8)))
+	 (1-segments (string->list (assv-ref segments-assoc 1)))
+	 (extra-seg (map (cut lset-difference eqv? 8-segments <>) 960-segments))
+	 (c-list (map (cut lset-difference eqv? 1-segments <>) extra-seg))
+	 (c (concatenate (filter (lambda (x) (eqv? (length x) 1)) c-list)))
+	 (f (lset-difference eqv? 1-segments c)))
+    (list c f)))
+	 
 
 (define (find-b segments-assoc)
   (format #t "~%segment-assoc: ~a" segments-assoc)
@@ -138,4 +144,4 @@ g -> Take 0, remove 1 (c f), remove a, b, e
 	   (a-segs (map find-a number-assocs))
            (cde-segs (map find-cde number-assocs))) ;; Need to know the contents of 3 and 9 first!
       (format #t "~%a: ~a" a-segs)
-      (format #t "~%cde: ~a" cde-segs))))
+      (format #t "~%cf: ~a" cde-segs))))
