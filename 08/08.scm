@@ -108,7 +108,7 @@ g -> Take 0, remove 1 (c f), remove a, b, e
 		   (string->list (assv-ref segments-assoc 7)) ;; MOST digits comes first in exp
 		   (string->list (assv-ref segments-assoc 1)))) 
 
-(define (find-cdef segments-assoc)
+(define (find-bcdef segments-assoc)
   (format #t "~%segment-assoc: ~a" segments-assoc)
   (let* ((960-segments (map string->list (assoc-ref-all segments-assoc 960)))
 	 (8-segments (string->list (assv-ref segments-assoc 8)))
@@ -121,16 +121,11 @@ g -> Take 0, remove 1 (c f), remove a, b, e
 	 (e-list (map (cut lset-difference eqv? <> 4-segments) extra-seg))
 	 (e (concatenate (filter (lambda (x) (eqv? (length x) 1)) e-list)))
 	 (d (concatenate (filter (lambda (x) (not (or (eqv? (car x) (car c)) (eqv? (car x) (car e))))) extra-seg)))
+	 (b-candidates (lset-difference eqv? 4-segments 1-segments))
+	 (b (concatenate (filter (lambda (x) (not (eqv? x (car d)))) b-candidates)))
 	 )
-    (list c f e d)))
+    `((b . ,b) (c . ,(car c)) (d . ,(car d)) (e . ,(car e)) (f . ,(car f)))))
 	 
-
-(define (find-b segments-assoc)
-  (format #t "~%segment-assoc: ~a" segments-assoc)
-  (lset-difference eqv?
-		   (string->list (assv-ref segments-assoc 9)) ;; MOST digits comes first in exp
-		   (string->list (assv-ref segments-assoc 3)))) 
-
 
 (define (determine-cryptograph one-line-segments)
   (let ((digit-lst (car one-line-segments)))
@@ -147,6 +142,6 @@ g -> Take 0, remove 1 (c f), remove a, b, e
     ;; Part 2
     (let* ((number-assocs (map determine-cryptograph di))
 	   (a-segs (map find-a number-assocs))
-           (cdef-segs (map find-cdef number-assocs))) ;; Need to know the contents of 3 and 9 first!
+           (bcdef-segs (map find-bcdef number-assocs))) ;; Need to know the contents of 3 and 9 first!
       (format #t "~%a: ~a" a-segs)
-      (format #t "~%cfed: ~a" cdef-segs))))
+      (format #t "~%bcdef: ~a" bcdef-segs))))
