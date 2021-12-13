@@ -108,16 +108,21 @@ g -> Take 0, remove 1 (c f), remove a, b, e
 		   (string->list (assv-ref segments-assoc 7)) ;; MOST digits comes first in exp
 		   (string->list (assv-ref segments-assoc 1)))) 
 
-(define (find-cde segments-assoc)
+(define (find-cdef segments-assoc)
   (format #t "~%segment-assoc: ~a" segments-assoc)
   (let* ((960-segments (map string->list (assoc-ref-all segments-assoc 960)))
 	 (8-segments (string->list (assv-ref segments-assoc 8)))
 	 (1-segments (string->list (assv-ref segments-assoc 1)))
-	 (extra-seg (map (cut lset-difference eqv? 8-segments <>) 960-segments))
-	 (c-list (map (cut lset-difference eqv? 1-segments <>) extra-seg))
-	 (c (concatenate (filter (lambda (x) (eqv? (length x) 1)) c-list)))
-	 (f (lset-difference eqv? 1-segments c)))
-    (list c f)))
+	 (4-segments (string->list (assv-ref segments-assoc 4)))
+	 (extra-seg (map (cut lset-difference eqv? 8-segments <>) 960-segments)) ;; 
+	 (f-list (map (cut lset-difference eqv? 1-segments <>) extra-seg))
+	 (f (concatenate (filter (lambda (x) (eqv? (length x) 1)) f-list)))
+	 (c (lset-difference eqv? 1-segments f))
+	 (e-list (map (cut lset-difference eqv? <> 4-segments) extra-seg))
+	 (e (concatenate (filter (lambda (x) (eqv? (length x) 1)) e-list)))
+	 (d (concatenate (filter (lambda (x) (not (or (eqv? (car x) (car c)) (eqv? (car x) (car e))))) extra-seg)))
+	 )
+    (list c f e d)))
 	 
 
 (define (find-b segments-assoc)
@@ -142,6 +147,6 @@ g -> Take 0, remove 1 (c f), remove a, b, e
     ;; Part 2
     (let* ((number-assocs (map determine-cryptograph di))
 	   (a-segs (map find-a number-assocs))
-           (cde-segs (map find-cde number-assocs))) ;; Need to know the contents of 3 and 9 first!
+           (cdef-segs (map find-cdef number-assocs))) ;; Need to know the contents of 3 and 9 first!
       (format #t "~%a: ~a" a-segs)
-      (format #t "~%cf: ~a" cde-segs))))
+      (format #t "~%cfed: ~a" cdef-segs))))
