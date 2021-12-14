@@ -127,6 +127,7 @@ g -> Take 0, remove 1 (c f), remove a, b, e
 	 (7-segments (string->list (assv-ref segments-assoc 7)))
 	 (g-candidates (lset-difference eqv? 8-segments 4-segments 7-segments))
 	 (g (concatenate (filter (lambda (x) (not (eqv? x (car e)))) g-candidates))))
+    (format #t "~%f-list: ~a  f: ~a c: ~a" f-list f c)
     `((#\b . ,b) (#\c . ,(car c)) (#\d . ,(car d)) (#\e . ,(car e)) (#\f . ,(car f)) (#\g . ,g))))
 	 
 
@@ -150,12 +151,13 @@ g -> Take 0, remove 1 (c f), remove a, b, e
   (lset= eqv? x y))
 
 (define (digit-as-list transform lst)
+  (format #t "~%transform: ~a lst: ~a" transform lst)
   (map (cut assv-ref transform <>) lst))
   
 (define (decrypt input transform)
   (let* ((code (map string->list (cadr input)))
 	 (clear (map (compose
-		      ;;(cut assoc <> digit-assoc lsetv?)
+		      (cut assoc <> digit-assoc lsetv?)
 		      (cut digit-as-list transform <>))
 		     code)))
     (format #t "~%code: ~a" code)
