@@ -108,6 +108,7 @@ g -> Take 0, remove 1 (c f), remove a, b, e
 		   (string->list (assv-ref segments-assoc 7)) ;; MOST digits comes first in exp
 		   (string->list (assv-ref segments-assoc 1)))) 
 
+;; yuk!
 (define (find-bcdefg segments-assoc)
   (format #t "~%segment-assoc: ~a" segments-assoc)
   (let* ((960-segments (map string->list (assoc-ref-all segments-assoc 960)))
@@ -133,6 +134,18 @@ g -> Take 0, remove 1 (c f), remove a, b, e
   (let ((digit-lst (car one-line-segments)))
     (map first-pass digit-lst)))
 
+(define digit-assoc
+  `((0 . ,(string->list "abcefg"))
+    (1 . ,(string->list "cf"))
+    (2 . ,(string->list "acdeg"))
+    (3 . ,(string->list "acdfg"))
+    (4 . ,(string->list "bcdf"))
+    (5 . ,(string->list "abdfg"))
+    (6 . ,(string->list "abdefg"))
+    (7 . ,(string->list "acf"))
+    (8 . ,(string->list "abcdefg"))
+    (9 . ,(string->list "abcdfg"))))
+    
 (define (main args)
   (let* ((di (file->digit-inputs "test_input.txt"))
 	 (ciphertext-segment-counts (concatenate (map count-cipher-segments di))))
@@ -146,6 +159,6 @@ g -> Take 0, remove 1 (c f), remove a, b, e
 	   (a-segs (map find-a number-assocs))
            (bcdefg-segs (map find-bcdefg number-assocs)) ;; Need to know the contents of 3 and 9 first!
            (all-segs (map (lambda (a others) (acons 'a (car a) others)) a-segs bcdefg-segs)))
-      (format #t "~%a: ~a" a-segs)
-      (format #t "~%bcdefg: ~a" bcdefg-segs)
+      ;;(format #t "~%a: ~a" a-segs)
+      ;;(format #t "~%bcdefg: ~a" bcdefg-segs)
       (format #t "~%all: ~a" all-segs))))
