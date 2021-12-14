@@ -111,9 +111,15 @@ DONE!
 	 (8-segments (string->list (assv-ref segments-assoc 8)))
 	 (1-segments (string->list (assv-ref segments-assoc 1)))
 	 (4-segments (string->list (assv-ref segments-assoc 4)))
+ 	 ;; There are 3 transitions from 7 segments to 6
+	 ;; 8->0, 8->6, and 8->9
+	 ;; extra-seg gives the remaining segments after this
+	 ;; transition in each case - we can then determine
+	 ;; segments using numbers that only contain one of these
+	 ;; possible 3 extra segments, which is enough to unravel the puzzle.
 	 (extra-seg (map
 		     (cut lset-difference eqv? 8-segments <>)
-		     960-segments)) ;; 
+		     960-segments))
 	 (f-list (map
 		  (cut lset-difference eqv? 1-segments <>)
 		  extra-seg)) ;; extra-seg = d,e,c
