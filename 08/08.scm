@@ -103,32 +103,36 @@ g -> Take 0, remove 1 (c f), remove a, b, e
       (else `(#f . ,digit-segments)))))
 
 (define (find-a segments-assoc)
-  (format #t "~%segment-assoc: ~a" segments-assoc)
+  (format #t "~%a segment-assoc: ~a" segments-assoc)
   (lset-difference eqv?
 		   (string->list (assv-ref segments-assoc 7)) ;; MOST digits comes first in exp
 		   (string->list (assv-ref segments-assoc 1)))) 
 
 ;; yuk!
+;; transform: ((a . b) (b f a) (c . g) (d . c) (e . e) (f . c) (g . d)) lst: (c g)
+;; c is used twice!
 (define (find-bcdefg segments-assoc)
-  (format #t "~%segment-assoc: ~a" segments-assoc)
+  (format #t "~%bcdefg segment-assoc: ~a" segments-assoc)
   (let* ((960-segments (map string->list (assoc-ref-all segments-assoc 960)))
 	 (8-segments (string->list (assv-ref segments-assoc 8)))
 	 (1-segments (string->list (assv-ref segments-assoc 1)))
 	 (4-segments (string->list (assv-ref segments-assoc 4)))
 	 (extra-seg (map (cut lset-difference eqv? 8-segments <>) 960-segments)) ;; 
-	 (f-list (map (cut lset-difference eqv? 1-segments <>) extra-seg))
+	 (f-list (map (cut lset-difference eqv? 1-segments <>) extra-seg)) ;; extra-seg = d,e,c
 	 (f (concatenate (filter (lambda (x) (eqv? (length x) 1)) f-list)))
 	 (c (lset-difference eqv? 1-segments f))
 	 (e-list (map (cut lset-difference eqv? <> 4-segments) extra-seg))
 	 (e (concatenate (filter (lambda (x) (eqv? (length x) 1)) e-list)))
 	 (d (concatenate (filter (lambda (x) (not (or (eqv? (car x) (car c)) (eqv? (car x) (car e))))) extra-seg)))
 	 (b-candidates (lset-difference eqv? 4-segments 1-segments))
+	 	 	 	 	 	  	 	 	 (foo (display b-candidates))
 	 (b (concatenate (filter (lambda (x) (not (eqv? x (car d)))) b-candidates)))
 	 (7-segments (string->list (assv-ref segments-assoc 7)))
 	 (g-candidates (lset-difference eqv? 8-segments 4-segments 7-segments))
 	 (g (concatenate (filter (lambda (x) (not (eqv? x (car e)))) g-candidates))))
-    (format #t "~%f-list: ~a  f: ~a c: ~a" f-list f c)
-    `((#\b . ,b) (#\c . ,(car c)) (#\d . ,(car d)) (#\e . ,(car e)) (#\f . ,(car f)) (#\g . ,g))))
+    (format #t "~%1-seg: ~a  f-list: ~a  f: ~a c: ~a" 1-segments f-list f c)
+    ;`((#\b . ,b) (#\c . ,(car c)) (#\d . ,(car d)) (#\e . ,(car e)) (#\f . ,(car f)) (#\g . ,g))))
+    `((,b . #\b) (,(car c) . #\c) (,(car d) . #\d) (,(car e) . #\e) (,(car f) . #\f) (,g . #\g))))
 	 
 
 (define (determine-cryptograph one-line-segments)
@@ -177,7 +181,7 @@ g -> Take 0, remove 1 (c f), remove a, b, e
     (let* ((number-assocs (map determine-cryptograph di))
 	   (a-segs (map find-a number-assocs))
            (bcdefg-segs (map find-bcdefg number-assocs)) ;; Need to know the contents of 3 and 9 first!
-           (all-segs (map (lambda (a others) (acons #\a (car a) others)) a-segs bcdefg-segs)))
+           (all-segs (map (lambda (a others) (acons (car a) #\a others)) a-segs bcdefg-segs)))
       ;;(format #t "~%a: ~a" a-segs)
       ;;(format #t "~%bcdefg: ~a" bcdefg-segs)
       (format #t "~%all: ~a" all-segs)
