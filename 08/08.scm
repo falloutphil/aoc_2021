@@ -161,6 +161,8 @@ g -> Take 0, remove 1 (c f), remove a, b, e
 (define (decrypt input transform)
   (let* ((code (map string->list (cadr input)))
 	 (clear (map (compose
+                      ;number->string					     
+		      cdr
 		      (cut assoc <> digit-assoc lsetv?)
 		      (cut digit-as-list transform <>))
 		     code)))
