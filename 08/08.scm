@@ -41,16 +41,6 @@ Take 1 - remove c, give you f
 Remaining position must be g
 
 DONE!
-
-a -> Exists in 7, not in 1
-b -> Exists in 9, not in 3
-c -> Take 4, remove b, d
-d -> Exists in 8, not in 0
-e -> Exists in 8, not in 9 OR Exists in 6 not in 5
-f -> Take 1, remove c
-g -> Take 0, remove 1 (c f), remove a, b, e
-
-
 !#
 
 
