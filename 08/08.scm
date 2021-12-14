@@ -127,7 +127,7 @@ g -> Take 0, remove 1 (c f), remove a, b, e
 	 (7-segments (string->list (assv-ref segments-assoc 7)))
 	 (g-candidates (lset-difference eqv? 8-segments 4-segments 7-segments))
 	 (g (concatenate (filter (lambda (x) (not (eqv? x (car e)))) g-candidates))))
-    `((b . ,b) (c . ,(car c)) (d . ,(car d)) (e . ,(car e)) (f . ,(car f)) (g . ,g))))
+    `((#\b . ,b) (#\c . ,(car c)) (#\d . ,(car d)) (#\e . ,(car e)) (#\f . ,(car f)) (#\g . ,g))))
 	 
 
 (define (determine-cryptograph one-line-segments)
@@ -149,9 +149,17 @@ g -> Take 0, remove 1 (c f), remove a, b, e
 (define (lsetv? x y)
   (lset= eqv? x y))
 
+(define (digit-as-list transform lst)
+  (map (cut assv-ref transform <>) lst))
+  
 (define (decrypt input transform)
-  (let* ((code (map string->list (cadr input))))
-    (format #t "~%code: ~a" code)))
+  (let* ((code (map string->list (cadr input)))
+	 (clear (map (compose
+		      ;;(cut assoc <> digit-assoc lsetv?)
+		      (cut digit-as-list transform <>))
+		     code)))
+    (format #t "~%code: ~a" code)
+    (format #t "~%clear: ~a" clear)))
 	       
 
 		 
@@ -167,7 +175,7 @@ g -> Take 0, remove 1 (c f), remove a, b, e
     (let* ((number-assocs (map determine-cryptograph di))
 	   (a-segs (map find-a number-assocs))
            (bcdefg-segs (map find-bcdefg number-assocs)) ;; Need to know the contents of 3 and 9 first!
-           (all-segs (map (lambda (a others) (acons 'a (car a) others)) a-segs bcdefg-segs)))
+           (all-segs (map (lambda (a others) (acons #\a (car a) others)) a-segs bcdefg-segs)))
       ;;(format #t "~%a: ~a" a-segs)
       ;;(format #t "~%bcdefg: ~a" bcdefg-segs)
       (format #t "~%all: ~a" all-segs)
