@@ -125,13 +125,11 @@ g -> Take 0, remove 1 (c f), remove a, b, e
 	 (e (concatenate (filter (lambda (x) (eqv? (length x) 1)) e-list)))
 	 (d (concatenate (filter (lambda (x) (not (or (eqv? (car x) (car c)) (eqv? (car x) (car e))))) extra-seg)))
 	 (b-candidates (lset-difference eqv? 4-segments 1-segments))
-	 	 	 	 	 	  	 	 	 (foo (display b-candidates))
 	 (b (concatenate (filter (lambda (x) (not (eqv? x (car d)))) b-candidates)))
 	 (7-segments (string->list (assv-ref segments-assoc 7)))
 	 (g-candidates (lset-difference eqv? 8-segments 4-segments 7-segments))
 	 (g (concatenate (filter (lambda (x) (not (eqv? x (car e)))) g-candidates))))
     (format #t "~%1-seg: ~a  f-list: ~a  f: ~a c: ~a" 1-segments f-list f c)
-    ;`((#\b . ,b) (#\c . ,(car c)) (#\d . ,(car d)) (#\e . ,(car e)) (#\f . ,(car f)) (#\g . ,g))))
     `((,b . #\b) (,(car c) . #\c) (,(car d) . #\d) (,(car e) . #\e) (,(car f) . #\f) (,g . #\g))))
 	 
 
@@ -149,7 +147,7 @@ g -> Take 0, remove 1 (c f), remove a, b, e
     (,(string->list "abdefg") . 6)
     (,(string->list "acf") . 7)
     (,(string->list "abcdefg") . 8)
-    (,(string->list "abcdfg") .9)))
+    (,(string->list "abcdfg") . 9)))
 
 (define (lsetv? x y)
   (lset= eqv? x y))
@@ -161,18 +159,21 @@ g -> Take 0, remove 1 (c f), remove a, b, e
 (define (decrypt input transform)
   (let* ((code (map string->list (cadr input)))
 	 (clear (map (compose
-                      ;number->string					     
+		      number->string
 		      cdr
 		      (cut assoc <> digit-assoc lsetv?)
 		      (cut digit-as-list transform <>))
-		     code)))
+		     code))
+	 (clear-str (apply string-append clear)))
     (format #t "~%code: ~a" code)
-    (format #t "~%clear: ~a" clear)))
+    (format #t "~%clear: ~a" clear)
+    (format #t "~%clear-str: ~a" clear-str)
+    (string->number clear-str)))
 	       
 
 		 
 (define (main args)
-  (let* ((di (file->digit-inputs "test_input.txt"))
+  (let* ((di (file->digit-inputs "input.txt"))
 	 (ciphertext-segment-counts (concatenate (map count-cipher-segments di))))
     ;;(format #t "~%~%Input: ~a~%" ciphertext-segment-counts)
     ;; Part 1
@@ -189,5 +190,5 @@ g -> Take 0, remove 1 (c f), remove a, b, e
       (format #t "~%all: ~a" all-segs)
       (format #t "~%assoc test: ~a~%" (assoc (string->list "afc") digit-assoc lsetv?))
       ;; map di + all-segs
-      (map decrypt di all-segs)
+      (format #t "~%~%Part 2: ~a" (reduce + 0 (map decrypt di all-segs)))
       )))
