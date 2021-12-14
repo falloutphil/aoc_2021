@@ -145,7 +145,16 @@ g -> Take 0, remove 1 (c f), remove a, b, e
     (,(string->list "acf") . 7)
     (,(string->list "abcdefg") . 8)
     (,(string->list "abcdfg") .9)))
-    
+
+(define (lsetv? x y)
+  (lset= eqv? x y))
+
+(define (decrypt input transform)
+  (let* ((code (map string->list (cadr input))))
+    (format #t "~%code: ~a" code)))
+	       
+
+		 
 (define (main args)
   (let* ((di (file->digit-inputs "test_input.txt"))
 	 (ciphertext-segment-counts (concatenate (map count-cipher-segments di))))
@@ -162,4 +171,7 @@ g -> Take 0, remove 1 (c f), remove a, b, e
       ;;(format #t "~%a: ~a" a-segs)
       ;;(format #t "~%bcdefg: ~a" bcdefg-segs)
       (format #t "~%all: ~a" all-segs)
-      (format #t "~%assoc test: ~a~%" (assoc (string->list "afc") digit-assoc (lambda (x y) (lset= eqv? x y)))))))
+      (format #t "~%assoc test: ~a~%" (assoc (string->list "afc") digit-assoc lsetv?))
+      ;; map di + all-segs
+      (map decrypt di all-segs)
+      )))
