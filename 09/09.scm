@@ -5,9 +5,8 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
 (define-module (day09)
   #:export (main)
   #:use-module (ice-9 rdelim) ;; read-line
-  #:use-module (srfi srfi-1) ;; concatenate
+  #:use-module (srfi srfi-1) ;; concatenate, iota
   #:use-module (srfi srfi-9) ;; records
-  #:use-module (srfi srfi-11) ;; let-values
   #:use-module (srfi srfi-26) ;; cut
   #:use-module (srfi srfi-42)) ;; list-ec
 
@@ -137,10 +136,15 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
 
 (define (main args)
   (let* ((world (parse-input "test_input.txt"))
+         (dims (array-dimensions world))
+         (world-coord-pairs (concatenate (map (lambda (col)
+                                                (map (lambda (row) (list col row))
+                                                     (iota (car dims))))
+                                              (iota (cadr dims)))))
 	 (test-grid (adjacent-grid world 2 2)))
     (format #t "~%world: ~a~%" world)
     (format #t "~%test-grid: ~a~%" test-grid)
-    (format #t "~%shared-offset: ~a~%" (shared-array-increments (cdr test-grid)))
+    (format #t "~%world array dimensions: ~a~%" world-coord-pairs)
     (format #t "~%TL+1 low point?: ~a~%" (low-point? test-grid))))
 
 
