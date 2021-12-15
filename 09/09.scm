@@ -139,7 +139,7 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
      (else `(,other . ,(sub-grid (list+-inc i) (list+-inc j)))))))
 
 (define (main args)
-  (let* ((world (parse-input "test_input.txt"))
+  (let* ((world (parse-input "input.txt"))
          (dims (array-dimensions world))
          (world-coord-pairs (concatenate (map (lambda (col)
                                                 (map (lambda (row) (list col row))
@@ -147,11 +147,16 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
                                               (iota (car dims))))))
     (format #t "~%world: ~a~%" world)
     (format #t "~%world array dimensions: ~a~%" world-coord-pairs)
-    (format #t "~%result: ~a~%" (filter (lambda (coords)
-                                      (let ((result (low-point? world coords)))
-                                        (format #t "~%filter result: ~a~%" result)
-                                        result))
-                                    world-coord-pairs))))
+    (let ((low-points (filter (lambda (coords)
+                                (let ((result (low-point? world coords)))
+                                  (format #t "~%filter result: ~a~%" result)
+                                  result))
+                              world-coord-pairs)))
+      (format #t "~%~%Part 1: ~a~%"
+              (fold (lambda (p sum)
+                      (+ sum 1 (array-ref world (car p) (cadr p))))
+                    0
+                    low-points)))))
 
 
 #!
