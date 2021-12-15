@@ -6,6 +6,7 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
   #:export (main)
   #:use-module (ice-9 rdelim) ;; read-line
   #:use-module (srfi srfi-1) ;; concatenate
+  #:use-module (srfi srfi-9) ;; records
   #:use-module (srfi srfi-11) ;; let-values
   #:use-module (srfi srfi-26) ;; cut
   #:use-module (srfi srfi-42)) ;; list-ec
@@ -16,7 +17,15 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
     (lambda (p)
       (list->array 2 (map (lambda (str)
 			    (map (compose string->number string) (string->list str)))
-		      (list-ec (:port line p read-line) line))))))
+		          (list-ec (:port line p read-line) line))))))
+
+;; Holds masking grid and it's central location.
+(define-record-type <centred-mask>
+  (make-centred-mask grid i j)
+  centred-mask?
+  (grid centred-mask-grid)
+  (i centred-mask-i)
+  (j centred-mask-j))
 
 ;; j-1 < 0, i-1 < 0 ---- top left make array (i i+1) (j j+1)
 ;; j-1 < 0 ---- left edge of row  make array (i-1 i+1) (j j+1)
@@ -52,22 +61,49 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
 
 ;; should be a structure that knows it's centre.
 (define top-left
-  #2((#f #t) (#t #f)))
+  (make-centred-mask #2((#f #t) (#t #f)) 0 0))
+
+(define top-right
+  (make-centred-mask #2((#t #f) (#f #t)) 0 1))
+
+(define bottom-left
+  (make-centred-mask #2((#t #f) (#f #t)) 1 0))
+
+(define bottom-right
+  (make-centred-mask #2((#f #t) (#t #f)) 0 1))
 
 (define top-row
-  #2((#t #f #t) (#f #t #f)))
+  (make-centred-mask #2((#t #f #t) (#f #t #f)) 0 1))
 
-(define (low-point? sub mask centre-i centre-j)
-  (let ((result #t)
-	(c (array-ref sub centre-i centre-j)))
+(define bottom-row
+  (make-centred-mask #2((#f #t #f) (#t #f #t)) 1 1))
+
+(define left-col
+  (make-centred-mask #2((#t #f) (#f #t) (#t #f)) 1 0))
+
+(define right-col
+  (make-centred-mask #2((#f #t) (#t #f) (#f #t)) 1 1))
+
+(define other
+  (make-centred-mask #2((#f #t #f) (#t #f #t) (#f #t #f)) 1 1))
+
+
+(define (low-point? grid-pair)
+  (let* ((result #t)
+         (sub (cdr grid-pair))
+         (c-mask (car grid-pair))
+         (c (array-ref sub (centred-mask-i c-mask) (centred-mask-j c-mask)))) ;; value @ centre
+    (format #t "~%grid: ~a" (centred-mask-grid c-mask))
+    (format #t "~%i: ~a" (centred-mask-i c-mask))
+    (format #t "~%j: ~a"  (centred-mask-j c-mask))
     (format #t "~%centre: ~a" c)
     (array-for-each (lambda (sub-v mask-v)
-		      (format #t "~%sub-v: ~a mask-v: ~a" sub-v mask-v)
-		      (when mask-v (set! result (and result (< c sub-v)))))
-		    sub mask)
+                      (format #t "~%sub-v: ~a mask-v: ~a" sub-v mask-v)
+                      (when mask-v (set! result (and result (< c sub-v))))) ;; the key line!
+                    sub (centred-mask-grid c-mask))
     result))
 
-  
+
 (define (adjacent-grid world i j)
   "Return grid centered on (i j)."
   (let* ((dims (array-dimensions world))
@@ -75,32 +111,32 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
 	 (rows (1- (car dims)))
 	 (sub-grid (make-sub-grid world)))
     (format #t "~%cols: ~a rows: ~a" cols rows)
-    (cond
+    (cond ;; order is important!
      ;; top left
-     ((and (< (1- i) 0) (< (1- j) 0)) (begin (display " TOP LEFT ") (sub-grid (list+inc i) (list+inc j))))
+     ((and (< (1- i) 0) (< (1- j) 0)) `(,top-left . ,(sub-grid (list+inc i) (list+inc j))))
      ;; top right
-     ((and (< (1- i) 0) (> (1+ j) cols)) (begin (display " TOP RIGHT ") (sub-grid (list+inc i) (list+dec j))))
+     ((and (< (1- i) 0) (> (1+ j) cols)) `(,top-right . ,(sub-grid (list+inc i) (list+dec j))))
      ;; bottom left
-     ((and (> (1+ i) rows) (< (1- j) 0)) (begin (display " BOTTOM LEFT ") (sub-grid (list+dec i) (list+inc j))))
+     ((and (> (1+ i) rows) (< (1- j) 0)) `(bottom-left . ,(sub-grid (list+dec i) (list+inc j))))
      ;; bottom right
-     ((and (> (1+ i) rows) (> (1+ j) cols)) (begin (display " BOTTOM RIGHT ") (sub-grid (list+dec i) (list+dec j))))
+     ((and (> (1+ i) rows) (> (1+ j) cols)) `(bottom-right . ,(sub-grid (list+dec i) (list+dec j))))
      ;; top row
-     ((< (1- i) 0) (begin (display " TOP ROW ") (sub-grid (list+inc i) (list+-inc j))))
+     ((< (1- i) 0) `(,top-row . ,(sub-grid (list+inc i) (list+-inc j))))
      ;; bottow row
-     ((> (1+ i) rows) (begin (display " BOTTOM ROW ") (sub-grid (list+dec i) (list+-inc j))))
+     ((> (1+ i) rows) `(,bottom-row . ,(sub-grid (list+dec i) (list+-inc j))))
      ;; left col
-     ((< (1- j) 0) (begin (display " LEFT COL ") (sub-grid (list+-inc i) (list+inc j))))
+     ((< (1- j) 0) `(,left-col . ,(sub-grid (list+-inc i) (list+inc j))))
      ;; right col
-     ((> (1+ j) cols) (begin (display " RIGHT COL ") (sub-grid (list+-inc i) (list+dec j))))
+     ((> (1+ j) cols) `(,right-col . ,(sub-grid (list+-inc i) (list+dec j))))
      ;; elsewhere, not on an edge
-     (else (begin (display " OTHER ") (sub-grid (list+-inc i) (list+-inc j)))))))
+     (else `(,other . ,(sub-grid (list+-inc i) (list+-inc j)))))))
 
 (define (main args)
   (let* ((world (parse-input "test_input.txt"))
 	 (test-grid (adjacent-grid world 0 1)))
     (format #t "~%world: ~a~%" world)
     (format #t "~%test-grid: ~a~%" test-grid)
-    (format #t "~%TL+1 low point?: ~a~%" (low-point? test-grid top-row 0 1))))
+    (format #t "~%TL+1 low point?: ~a~%" (low-point? test-grid))))
 
 
 #!
@@ -116,6 +152,18 @@ TOP RIGHT
 #t  c
 
 #f  #t
+
+BOTTOM LEFT
+
+#t  #f
+
+#c  #t
+
+BOTTOM RIGHT
+
+#f  #f
+
+#t  #c
 
 LEFT COL
 
