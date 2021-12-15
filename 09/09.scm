@@ -3,7 +3,7 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
 !#
 
 #!
-Details of masks required on sub arrays:
+Details of masks required on sub arrays to ignore diagonals.
 
 c  = centre (#f in the actual arrays)
 #t = point to compare to low point
