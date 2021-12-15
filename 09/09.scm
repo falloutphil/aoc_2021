@@ -95,6 +95,7 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
   (let* ((result #t)
          (sub (cdr grid-pair))
          (c-mask (car grid-pair))
+         ;; this is the reason we have to 0-anchor our arrays which is expensive :-(
          (c (array-ref sub (centred-mask-i c-mask) (centred-mask-j c-mask)))) ;; value @ centre
     (format #t "~%grid: ~a" (centred-mask-grid c-mask))
     (format #t "~%i: ~a" (centred-mask-i c-mask))
@@ -138,7 +139,7 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
   (let* ((world (parse-input "test_input.txt"))
 	 (test-grid (adjacent-grid world 2 2)))
     (format #t "~%world: ~a~%" world)
-    (format #t "~%test-grid: ~a~%" (zero-array-origin (cdr test-grid)))
+    (format #t "~%test-grid: ~a~%" test-grid)
     (format #t "~%shared-offset: ~a~%" (shared-array-increments (cdr test-grid)))
     (format #t "~%TL+1 low point?: ~a~%" (low-point? test-grid))))
 
