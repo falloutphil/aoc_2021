@@ -117,9 +117,9 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
      ;; top right
      ((and (< (1- i) 0) (> (1+ j) cols)) `(,top-right . ,(sub-grid (list+inc i) (list+dec j))))
      ;; bottom left
-     ((and (> (1+ i) rows) (< (1- j) 0)) `(bottom-left . ,(sub-grid (list+dec i) (list+inc j))))
+     ((and (> (1+ i) rows) (< (1- j) 0)) `(,bottom-left . ,(sub-grid (list+dec i) (list+inc j))))
      ;; bottom right
-     ((and (> (1+ i) rows) (> (1+ j) cols)) `(bottom-right . ,(sub-grid (list+dec i) (list+dec j))))
+     ((and (> (1+ i) rows) (> (1+ j) cols)) `(,bottom-right . ,(sub-grid (list+dec i) (list+dec j))))
      ;; top row
      ((< (1- i) 0) `(,top-row . ,(sub-grid (list+inc i) (list+-inc j))))
      ;; bottow row
@@ -133,7 +133,7 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
 
 (define (main args)
   (let* ((world (parse-input "test_input.txt"))
-	 (test-grid (adjacent-grid world 0 1)))
+	 (test-grid (adjacent-grid world 2 2)))
     (format #t "~%world: ~a~%" world)
     (format #t "~%test-grid: ~a~%" test-grid)
     (format #t "~%TL+1 low point?: ~a~%" (low-point? test-grid))))
