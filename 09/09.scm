@@ -50,6 +50,24 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
 ;; or perhaps array->list and work out if the central
 ;; value a low value in it's locality.
 
+;; should be a structure that knows it's centre.
+(define top-left
+  #2((#f #t) (#t #f)))
+
+(define top-row
+  #2((#t #f #t) (#f #t #f)))
+
+(define (low-point? sub mask centre-i centre-j)
+  (let ((result #t)
+	(c (array-ref sub centre-i centre-j)))
+    (format #t "~%centre: ~a" c)
+    (array-for-each (lambda (sub-v mask-v)
+		      (format #t "~%sub-v: ~a mask-v: ~a" sub-v mask-v)
+		      (when mask-v (set! result (and result (< c sub-v)))))
+		    sub mask)
+    result))
+
+  
 (define (adjacent-grid world i j)
   "Return grid centered on (i j)."
   (let* ((dims (array-dimensions world))
@@ -79,12 +97,58 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
 
 (define (main args)
   (let* ((world (parse-input "test_input.txt"))
-	 (test-grid (adjacent-grid world 4 2)))
+	 (test-grid (adjacent-grid world 0 1)))
     (format #t "~%world: ~a~%" world)
-    (format #t "~%test-grid: ~a~%" test-grid)))
+    (format #t "~%test-grid: ~a~%" test-grid)
+    (format #t "~%TL+1 low point?: ~a~%" (low-point? test-grid top-row 0 1))))
 
 
 #!
+
+TOP LEFT
+
+c  #t
+
+#t #f
+
+TOP RIGHT
+
+#t  c
+
+#f  #t
+
+LEFT COL
+
+#t #f
+
+c  #t
+
+#t #f
+
+RIGHT COL
+
+#f #t
+
+#t c
+
+#f #t
+
+TOP ROW
+
+#t c  #t
+#f #t #f
+
+BOTTOM ROW
+
+#f #t #f
+#t c  #t
+
+OTHERWISE
+
+#f #t #f
+#t c  #t
+#f #t #f
+
 scheme@(guile-user)> (make-shared-array a (lambda (i j) (list i j)) '(0 2) '(0 2))
 $6 = #2((2 1 9) (3 9 8) (9 8 5))
 scheme@(guile-user)> (make-shared-array a (lambda (i j) (list i j)) '(0 2) '(1 3))
