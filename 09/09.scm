@@ -44,6 +44,10 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
 (define (list+-inc i)
   (list (1- i) (1+ i)))
 
+(define (zero-array-origin arr)
+  "A naff way of resetting the array origin to (0 0)."
+  (list->array 2 (array->list arr)))
+
 (define (make-sub-grid world)
   (lambda (i-bounds j-bounds)
     ;; list is just a pass-through so we don't change
@@ -52,7 +56,7 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
     ;; without coordinates.
     ;; The trick will be filtering out all the diagonals!
     (format #t "~%i bounds: ~a j bounds: ~a" i-bounds j-bounds)
-    (make-shared-array world list i-bounds j-bounds)))
+    (zero-array-origin (make-shared-array world list i-bounds j-bounds))))
 
 
 ;; need a function to pass to array-for-each
@@ -86,7 +90,6 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
 
 (define other
   (make-centred-mask #2((#f #t #f) (#t #f #t) (#f #t #f)) 1 1))
-
 
 (define (low-point? grid-pair)
   (let* ((result #t)
@@ -135,7 +138,8 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
   (let* ((world (parse-input "test_input.txt"))
 	 (test-grid (adjacent-grid world 2 2)))
     (format #t "~%world: ~a~%" world)
-    (format #t "~%test-grid: ~a~%" test-grid)
+    (format #t "~%test-grid: ~a~%" (zero-array-origin (cdr test-grid)))
+    (format #t "~%shared-offset: ~a~%" (shared-array-increments (cdr test-grid)))
     (format #t "~%TL+1 low point?: ~a~%" (low-point? test-grid))))
 
 
