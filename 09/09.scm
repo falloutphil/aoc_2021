@@ -54,7 +54,7 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
     ;; array-for-each or similar to traverse the array
     ;; without coordinates.
     ;; The trick will be filtering out all the diagonals!
-    (format #t "~%i bounds: ~a j bounds: ~a" i-bounds j-bounds)
+    ;;(format #t "~%i bounds: ~a j bounds: ~a" i-bounds j-bounds)
     (zero-array-origin (make-shared-array world list i-bounds j-bounds))))
 
 
@@ -90,12 +90,16 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
 (define other
   (make-centred-mask #2((#f #t #f) (#t #f #t) (#f #t #f)) 1 1))
 
-(define (low-point? grid-pair)
+(define (low-point? world coords)
   (let* ((result #t)
+         (i (car coords))
+         (j (cadr coords))
+         (grid-pair (adjacent-grid world i j))
          (sub (cdr grid-pair))
          (c-mask (car grid-pair))
          ;; this is the reason we have to 0-anchor our arrays which is expensive :-(
          (c (array-ref sub (centred-mask-i c-mask) (centred-mask-j c-mask)))) ;; value @ centre
+    (format #t "~%world coords: (~a, ~a)" i j)
     (format #t "~%grid: ~a" (centred-mask-grid c-mask))
     (format #t "~%i: ~a" (centred-mask-i c-mask))
     (format #t "~%j: ~a"  (centred-mask-j c-mask))
@@ -113,7 +117,7 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
 	 (cols (1- (cadr dims)))
 	 (rows (1- (car dims)))
 	 (sub-grid (make-sub-grid world)))
-    (format #t "~%cols: ~a rows: ~a" cols rows)
+    ;;(format #t "~%cols: ~a rows: ~a" cols rows)
     (cond ;; order is important!
      ;; top left
      ((and (< (1- i) 0) (< (1- j) 0)) `(,top-left . ,(sub-grid (list+inc i) (list+inc j))))
@@ -139,13 +143,15 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
          (dims (array-dimensions world))
          (world-coord-pairs (concatenate (map (lambda (col)
                                                 (map (lambda (row) (list col row))
-                                                     (iota (car dims))))
-                                              (iota (cadr dims)))))
-	 (test-grid (adjacent-grid world 2 2)))
+                                                     (iota (cadr dims))))
+                                              (iota (car dims))))))
     (format #t "~%world: ~a~%" world)
-    (format #t "~%test-grid: ~a~%" test-grid)
     (format #t "~%world array dimensions: ~a~%" world-coord-pairs)
-    (format #t "~%TL+1 low point?: ~a~%" (low-point? test-grid))))
+    (format #t "~%result: ~a~%" (filter (lambda (coords)
+                                      (let ((result (low-point? world coords)))
+                                        (format #t "~%filter result: ~a~%" result)
+                                        result))
+                                    world-coord-pairs))))
 
 
 #!
