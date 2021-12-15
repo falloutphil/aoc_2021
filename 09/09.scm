@@ -45,6 +45,11 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
     (format #t "~%i bounds: ~a j bounds: ~a" i-bounds j-bounds)
     (make-shared-array world list i-bounds j-bounds)))
 
+
+;; need a function to pass to array-for-each
+;; or perhaps array->list and work out if the central
+;; value a low value in it's locality.
+
 (define (adjacent-grid world i j)
   "Return grid centered on (i j)."
   (let* ((dims (array-dimensions world))
