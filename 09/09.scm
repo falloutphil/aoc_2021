@@ -207,14 +207,16 @@ OTHERWISE
 (define (make-2d-coords arr)
   "Create a set of coordinate pairs for the given array."
   (let* ((dims (array-shape arr))
-	 (col-bounds (list (1+ (cadar dims)) (caar dims)))
-	 (row-bounds (list (1+ (cadadr dims)) (caadr dims))))
+	 (col-bounds (list (- (cadar dims) -1 (caar dims)) (caar dims)))
+	 (row-bounds (list (- (cadadr dims) -1 (caadr dims)) (caadr dims))))
     (format #t "~%dims: ~a" dims)
-    (concatenate
+    (let ((result (concatenate
      (map (lambda (col)
 	    (map (lambda (row) (list col row))
 		 (apply iota row-bounds)))
 	  (apply iota col-bounds)))))
+      (format #t "~%2d result: ~a" result)
+      result)))
 
 (define (make-upstream? centre)
   (lambda (element mask-element coord)
@@ -222,11 +224,11 @@ OTHERWISE
      ((eqv? element 9) #f)
      ((< element centre) #f) ;; if the candidate is less than the centre, it must be downstream
      ((not mask-element) #f) ;; ignore diagonals
-     (else (begin (format #t "~%coord: ~a" coord) coord)))))
+     (else (begin (format #t "~%next point found: ~a" coord) coord)))))
 
 (define (process world low-point)
   (format #t "~%low-point ~a" low-point)
-  (let* ((adjacent (adjacent-grid world low-point identity))
+  (let* ((adjacent (adjacent-grid world low-point identity)) ;; make zero-array calls all local like below
 	 (mask (car adjacent))
 	 (grid (cdr adjacent))
 	 (c (array-ref (zero-array-origin grid) (centred-mask-i mask) (centred-mask-j mask)))
@@ -238,10 +240,10 @@ OTHERWISE
 		(make-2d-coords grid))))
 
 (define (recurse-basins world low-points)
-  (cond
-   ((null? low-points) '())
-   (else (cons (recurse-basins world (process world (car low-points)))
-	       (recurse-basins world (cdr low-points))))))
+  (if (null? low-points)
+      1
+      (* (+ 1 (recurse-basins world (process world (car low-points))))
+         (recurse-basins world (cdr low-points)))))
 
 (define (main args)
   (let* ((world (parse-input "test_input.txt"))
@@ -258,7 +260,8 @@ OTHERWISE
 		      (+ sum 1 (array-ref world (car p) (cadr p))))
                     0
                     low-points))
-      (recurse-basins world low-points)
+      (format #t "~%~%Part 2: ~a~%" (recurse-basins world low-points))
+      ;;(format #t "~%~%Part 2: ~a~%" (map (lambda (lpb) (count null? (concatenate lpb))) (recurse-basins world low-points)))
       )))
 
 
