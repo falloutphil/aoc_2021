@@ -211,10 +211,10 @@ OTHERWISE
          (row-bounds (list (- (cadadr dims) -1 (caadr dims)) (caadr dims))))
     (format #t "~%dims: ~a" dims)
     (let ((result (concatenate
-     (map (lambda (col)
-            (map (lambda (row) (list col row))
-                 (apply iota row-bounds)))
-          (apply iota col-bounds)))))
+                   (map (lambda (col)
+                          (map (lambda (row) (list col row))
+                               (apply iota row-bounds)))
+                        (apply iota col-bounds)))))
       (format #t "~%2d result: ~a" result)
       result)))
 
@@ -246,6 +246,21 @@ OTHERWISE
         (cons (cons result (recurse-basins world result))
               (recurse-basins world (cdr low-points))))))
 
+(define (flatten1 lists)               
+  (if (not (pair? lists))
+      (list lists)
+      (fold (lambda (right left)
+              (append left (flatten1 right)))
+            '()
+            lists)))
+
+(define (flatten lists)
+  (format #t "~%lists: ~a car: ~a" lists (number? (car lists)))
+  (cond
+   ((null? lists) (begin (display " MOO ") '()))
+   ((number? lists) (begin (display " NUMBER ") lists)
+   ((pair? lists) (begin (display " ELSE ") (list (flatten (car lists)) (flatten (cdr lists)))))))
+   
 (define (main args)
   (let* ((world (parse-input "test_input.txt"))
          (world-coord-pairs (make-2d-coords world)))
@@ -262,7 +277,7 @@ OTHERWISE
                     0
                     low-points))
       
-      (format #t "~%~%Part 2: ~a~%" (map append (recurse-basins world low-points) (map list low-points))) ;; add low-points to the basin
+      (format #t "~%~%Part 2: ~a~%" (flatten (map append (recurse-basins world low-points) (map list low-points)))) ;; add low-points to the basin
       ;;(format #t "~%~%Part 2: ~a~%" (map (lambda (lpb) (count null? (concatenate lpb))) (recurse-basins world low-points)))
       )))
 
@@ -281,7 +296,7 @@ length of list left
 0 '()
 else (map fn new list)
 
- | 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+| 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
  | ----------------------------
 0| 2, 1, 9, 9, 9, 4, 3, 2, 1, 0
 1| 3, 9, 8, 7, 8, 9, 4, 9, 2, 1
@@ -291,7 +306,7 @@ else (map fn new list)
 
 
  | 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
- | ----------------------------
+| ----------------------------
 0| *, !, 9, 9, 9, *, *, *, *, !
 1| *, 9, *, *, *, 9, *, 9, *, *
 2| 9, *, *, *, *, *, 9, *, 9, 2
