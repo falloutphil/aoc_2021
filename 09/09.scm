@@ -206,12 +206,15 @@ OTHERWISE
 
 (define (make-2d-coords arr)
   "Create a set of coordinate pairs for the given array."
-  (let ((dims (array-dimensions arr)))
+  (let* ((dims (array-shape arr))
+	 (col-bounds (list (1+ (cadar dims)) (caar dims)))
+	 (row-bounds (list (1+ (cadadr dims)) (caadr dims))))
+    (format #t "~%dims: ~a" dims)
     (concatenate
      (map (lambda (col)
 	    (map (lambda (row) (list col row))
-		 (iota (cadr dims))))
-	  (iota (car dims))))))
+		 (apply iota row-bounds)))
+	  (apply iota col-bounds)))))
 
 (define (make-upstream? centre)
   (lambda (element mask-element coord)
@@ -228,6 +231,7 @@ OTHERWISE
 	 (grid (cdr adjacent))
 	 (c (array-ref (zero-array-origin grid) (centred-mask-i mask) (centred-mask-j mask)))
 	 (upstream? (make-upstream? c))) ;; value @ centre)
+    (format #t "~%grid: ~a" grid)
     (filter-map upstream?
 		(concatenate (array->list grid))
 		(concatenate (array->list (centred-mask-grid mask)))
