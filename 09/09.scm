@@ -80,8 +80,8 @@ OTHERWISE
   (call-with-input-file filename
     (lambda (p)
       (list->array 2 (map (lambda (str)
-			    (map (compose string->number string) (string->list str)))
-		          (list-ec (:port line p read-line) line))))))
+                            (map (compose string->number string) (string->list str)))
+                          (list-ec (:port line p read-line) line))))))
 
 ;; Holds masking grid and it's central location.
 (define-record-type <centred-mask>
@@ -178,11 +178,11 @@ OTHERWISE
 (define (adjacent-grid world coords origin-translation)
   "Return grid centered on (i j)."
   (let* ((i (car coords))
-	 (j (cadr coords))
-	 (dims (array-dimensions world))
-	 (cols (1- (cadr dims)))
-	 (rows (1- (car dims)))
-	 (sub-grid (make-sub-grid world origin-translation)))
+         (j (cadr coords))
+         (dims (array-dimensions world))
+         (cols (1- (cadr dims)))
+         (rows (1- (car dims)))
+         (sub-grid (make-sub-grid world origin-translation)))
     ;;(format #t "~%cols: ~a rows: ~a" cols rows)
     (cond ;; order is important!
      ;; top left
@@ -207,14 +207,14 @@ OTHERWISE
 (define (make-2d-coords arr)
   "Create a set of coordinate pairs for the given array."
   (let* ((dims (array-shape arr))
-	 (col-bounds (list (- (cadar dims) -1 (caar dims)) (caar dims)))
-	 (row-bounds (list (- (cadadr dims) -1 (caadr dims)) (caadr dims))))
+         (col-bounds (list (- (cadar dims) -1 (caar dims)) (caar dims)))
+         (row-bounds (list (- (cadadr dims) -1 (caadr dims)) (caadr dims))))
     (format #t "~%dims: ~a" dims)
     (let ((result (concatenate
      (map (lambda (col)
-	    (map (lambda (row) (list col row))
-		 (apply iota row-bounds)))
-	  (apply iota col-bounds)))))
+            (map (lambda (row) (list col row))
+                 (apply iota row-bounds)))
+          (apply iota col-bounds)))))
       (format #t "~%2d result: ~a" result)
       result)))
 
@@ -229,22 +229,22 @@ OTHERWISE
 (define (process world low-point)
   (format #t "~%low-point ~a" low-point)
   (let* ((adjacent (adjacent-grid world low-point identity)) ;; make zero-array calls all local like below
-	 (mask (car adjacent))
-	 (grid (cdr adjacent))
-	 (c (array-ref (zero-array-origin grid) (centred-mask-i mask) (centred-mask-j mask)))
-	 (upstream? (make-upstream? c))) ;; value @ centre)
+         (mask (car adjacent))
+         (grid (cdr adjacent))
+         (c (array-ref (zero-array-origin grid) (centred-mask-i mask) (centred-mask-j mask)))
+         (upstream? (make-upstream? c))) ;; value @ centre)
     (format #t "~%grid: ~a" grid)
     (filter-map upstream?
-		(concatenate (array->list grid))
-		(concatenate (array->list (centred-mask-grid mask)))
-		(make-2d-coords grid))))
+                (concatenate (array->list grid))
+                (concatenate (array->list (centred-mask-grid mask)))
+                (make-2d-coords grid))))
 
 (define (recurse-basins world low-points)
   (if (null? low-points)
       '()
       (let ((result (process world (car low-points))))
-	(cons (cons result (recurse-basins world result))
-	      (recurse-basins world (cdr low-points))))))
+        (cons (cons result (recurse-basins world result))
+              (recurse-basins world (cdr low-points))))))
 
 (define (main args)
   (let* ((world (parse-input "test_input.txt"))
@@ -255,10 +255,10 @@ OTHERWISE
                                 (let ((result (low-point? world coords)))
                                   ;;(format #t "~%filter result: ~a~%" result)
                                   result))
-			      world-coord-pairs)))
+                              world-coord-pairs)))
       (format #t "~%~%Part 1: ~a~%"
-	      (fold (lambda (p sum)
-		      (+ sum 1 (array-ref world (car p) (cadr p))))
+              (fold (lambda (p sum)
+                      (+ sum 1 (array-ref world (car p) (cadr p))))
                     0
                     low-points))
       (format #t "~%~%Part 2: ~a~%" (map (compose concatenate) (recurse-basins world low-points)))
