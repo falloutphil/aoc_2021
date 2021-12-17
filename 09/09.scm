@@ -261,7 +261,8 @@ OTHERWISE
                       (+ sum 1 (array-ref world (car p) (cadr p))))
                     0
                     low-points))
-      (format #t "~%~%Part 2: ~a~%" (map (compose concatenate) (recurse-basins world low-points)))
+      
+      (format #t "~%~%Part 2: ~a~%" (map append (recurse-basins world low-points) (map list low-points))) ;; add low-points to the basin
       ;;(format #t "~%~%Part 2: ~a~%" (map (lambda (lpb) (count null? (concatenate lpb))) (recurse-basins world low-points)))
       )))
 
@@ -291,11 +292,11 @@ else (map fn new list)
 
  | 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
  | ----------------------------
-0| *, #, 9, 9, 9, *, *, *, *, #
+0| *, !, 9, 9, 9, *, *, *, *, !
 1| *, 9, *, *, *, 9, *, 9, *, *
 2| 9, *, *, *, *, *, 9, *, 9, 2
 3| *, *, *, *, *, 9, *, *, *, 9
-4| 9, *, 9, 9, 9, *, #, *, *, *
+4| 9, *, 9, 9, 9, *, !, *, *, *
 
 
 There are 2 issues
@@ -308,7 +309,7 @@ There are 2 issues
 '(
   (((0 0)) (((1 0)) (()))) ;; the original low point (0 1) is not there why?
   
-  (((0 8) (1 9)) (((0 7) (1 8)) (((0 6)) (((0 5) (1 6)) (()) (()))) (())) (((1 8) (2 9)) (()) (()))) # (1 8) ;; appears three times, why?
+  (((0 8) (1 9)) (((0 7) (1 8)) (((0 6)) (((0 5) (1 6)) (()) (()))) (())) (((1 8) (2 9)) (()) (()))) ;; (1 8) appears three times, why?
 
   (((1 2) (2 1) (2 3) (3 2)) (()) (()) (((1 3) (2 4) (3 3)) (((1 2) (1 4)) (()) (())) (((1 4) (2 5) (3 4)) (()) (()) (())) (((3 4)) (()))) (((3 1) (3 3)) (((2 1) (3 0) (4 1)) (()) (()) (())) (((3 4)) (())))) ;; (1 2) (2 1) (1 4) (3 4) (3 3) repeats
 
