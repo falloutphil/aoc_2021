@@ -241,9 +241,10 @@ OTHERWISE
 
 (define (recurse-basins world low-points)
   (if (null? low-points)
-      1
-      (* (+ 1 (recurse-basins world (process world (car low-points))))
-         (recurse-basins world (cdr low-points)))))
+      '()
+      (let ((result (process world (car low-points))))
+	(cons (cons result (recurse-basins world result))
+	      (recurse-basins world (cdr low-points))))))
 
 (define (main args)
   (let* ((world (parse-input "test_input.txt"))
@@ -260,7 +261,7 @@ OTHERWISE
 		      (+ sum 1 (array-ref world (car p) (cadr p))))
                     0
                     low-points))
-      (format #t "~%~%Part 2: ~a~%" (recurse-basins world low-points))
+      (format #t "~%~%Part 2: ~a~%" (map (compose concatenate) (recurse-basins world low-points)))
       ;;(format #t "~%~%Part 2: ~a~%" (map (lambda (lpb) (count null? (concatenate lpb))) (recurse-basins world low-points)))
       )))
 
@@ -280,3 +281,12 @@ length of list left
 else (map fn new list)
 
 !#
+
+'(
+  (((0 0)) (((1 0)) (())))
+  
+  (((0 8) (1 9)) (((0 7) (1 8)) (((0 6)) (((0 5) (1 6)) (()) (()))) (())) (((1 8) (2 9)) (()) (())))
+
+  (((1 2) (2 1) (2 3) (3 2)) (()) (()) (((1 3) (2 4) (3 3)) (((1 2) (1 4)) (()) (())) (((1 4) (2 5) (3 4)) (()) (()) (())) (((3 4)) (()))) (((3 1) (3 3)) (((2 1) (3 0) (4 1)) (()) (()) (())) (((3 4)) (()))))
+
+  (((3 6) (4 5) (4 7)) (((3 7)) (((2 7) (3 8)) (()) (())))(()) (((3 7) (4 8)) (((2 7) (3 8)) (()) (())) (((3 8) (4 9)) (()) (())))))
