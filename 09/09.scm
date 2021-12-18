@@ -218,20 +218,25 @@ OTHERWISE
       (format #t "~%2d result: ~a" result)
       result)))
 
+;; each centre is only tried once in the outer loop
+;; but what about recursively adding?
+
 (define (make-make-upstream?)
   (let ((traversed-coords '()))
-    (lambda (centre) ;; make-upstream?
+    (lambda (centre-coord centre) ;; make-upstream?
       ;;(format #t "~%centre: ~a" centre)
-      (lambda (element mask-element coord) ;; upstream?
-	;;(format #t "~%traversed-coords: ~a" traversed-coords)
-	(let ((result (cond
-		       ((eqv? element 9) #f)
-		       ((member coord traversed-coords) #f) 
-		       ((< element centre) #f) ;; if the candidate is less than the centre, it must be downstream
-		       ((not mask-element) #f) ;; ignore diagonals
-		       (else (begin (format #t "~%next point found: ~a" coord) coord)))))
-	  (set! traversed-coords (cons coord traversed-coords))
-	  result)))))
+      (if (member centre-coord traversed-coords)
+	  (lambda (e m c) #f)
+	  (begin 
+	    (set! traversed-coords (cons centre-coord traversed-coords))
+	    (lambda (element mask-element coord) ;; upstream?
+	      ;;(format #t "~%traversed-coords: ~a" traversed-coords)
+	      (let ((result (cond
+			     ((eqv? element 9) #f)
+			      ((< element centre) #f) ;; if the candidate is less than the centre, it must be downstream
+			      ((not mask-element) #f) ;; ignore diagonals
+			      (else (begin (format #t "~%next point found: ~a" coord) coord)))))
+		    result)))))))
  
 
 (define (process world low-point make-upstream?)
@@ -240,7 +245,7 @@ OTHERWISE
          (mask (car adjacent))
          (grid (cdr adjacent))
          (c (array-ref (zero-array-origin grid) (centred-mask-i mask) (centred-mask-j mask)))
-         (upstream? (make-upstream? c))) ;; value @ centre)
+         (upstream? (make-upstream? low-point c))) ;; c is value @ centre
     (format #t "~%grid: ~a" grid)
     (filter-map upstream?
                 (concatenate (array->list grid))
