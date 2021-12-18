@@ -209,13 +209,13 @@ OTHERWISE
   (let* ((dims (array-shape arr))
          (col-bounds (list (- (cadar dims) -1 (caar dims)) (caar dims)))
          (row-bounds (list (- (cadadr dims) -1 (caadr dims)) (caadr dims))))
-    (format #t "~%dims: ~a" dims)
+    ;;(format #t "~%dims: ~a" dims)
     (let ((result (concatenate
                    (map (lambda (col)
                           (map (lambda (row) (list col row))
                                (apply iota row-bounds)))
                         (apply iota col-bounds)))))
-      (format #t "~%2d result: ~a" result)
+      ;;(format #t "~%2d result: ~a" result)
       result)))
 
 ;; each centre is only tried once in the outer loop
@@ -226,7 +226,7 @@ OTHERWISE
     (lambda (centre-coord centre) ;; make-upstream?
       ;;(format #t "~%centre: ~a" centre)
       (if (member centre-coord traversed-coords)
-	  (lambda (e m c) #f)
+	  (lambda (e m c) #f) ;; to avoid deadlocks return false for all input if previously traversed
 	  (begin 
 	    (set! traversed-coords (cons centre-coord traversed-coords))
 	    (lambda (element mask-element coord) ;; upstream?
@@ -235,18 +235,18 @@ OTHERWISE
 			     ((eqv? element 9) #f)
 			      ((< element centre) #f) ;; if the candidate is less than the centre, it must be downstream
 			      ((not mask-element) #f) ;; ignore diagonals
-			      (else (begin (format #t "~%next point found: ~a" coord) coord)))))
+			      (else coord))))
 		    result)))))))
  
 
 (define (process world low-point make-upstream?)
-  (format #t "~%low-point ~a" low-point)
+  ;;(format #t "~%low-point ~a" low-point)
   (let* ((adjacent (adjacent-grid world low-point identity)) ;; make zero-array calls all local like below
          (mask (car adjacent))
          (grid (cdr adjacent))
          (c (array-ref (zero-array-origin grid) (centred-mask-i mask) (centred-mask-j mask)))
          (upstream? (make-upstream? low-point c))) ;; c is value @ centre
-    (format #t "~%grid: ~a" grid)
+    ;;(format #t "~%grid: ~a" grid)
     (filter-map upstream?
                 (concatenate (array->list grid))
                 (concatenate (array->list (centred-mask-grid mask)))
@@ -259,18 +259,16 @@ OTHERWISE
 				 (let ((result (process world (car low-points) make-upstream?)))
 				   (cons (cons result (recurse-basins world result))
 					 (recurse-basins world (cdr low-points))))))))
-    (display " PARP! ")
     recurse-basins))
 
 (define (flatten lists)
   (cond
-   ((null? lists) (begin (display " MOO ") '()))
+   ((null? lists) '())
    ((and (pair? lists)
 	 (pair? (car lists))
 	 (number? (caar lists))) lists)
-   ((pair? lists) (begin (display " ELSE ")
-			 (append (flatten (car lists))
-				 (flatten (cdr lists)))))
+   ((pair? lists) (append (flatten (car lists))
+			  (flatten (cdr lists))))
    (else (error "oops"))))
 
 (define (main args)
@@ -293,10 +291,7 @@ OTHERWISE
 				     (map (compose length delete-duplicates flatten)
 					  (let ((rb (make-recurse-basins (make-make-upstream?))))
 					    (map append (rb world low-points)
-						 (map list low-points))))))
-      ;; add low-points to the basin
-      ;;(format #t "~%~%Part 2: ~a~%" (map (lambda (lpb) (count null? (concatenate lpb))) (recurse-basins world low-points)))
-      )))
+						 (map list low-points)))))))))
 
 
 #!
