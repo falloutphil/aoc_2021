@@ -218,21 +218,23 @@ OTHERWISE
       (format #t "~%2d result: ~a" result)
       result)))
 
-(define (make-upstream? centre)
+(define (make-make-upstream?)
   (let ((traversed-coords '()))
-    (lambda (element mask-element coord)
-      (format #t "~%traversed-coords: ~a" traversed-coords)
-      (let ((result (cond
-		     ((eqv? element 9) #f)
-		     ((member coord traversed-coords) #f) 
-		     ((< element centre) #f) ;; if the candidate is less than the centre, it must be downstream
-		     ((not mask-element) #f) ;; ignore diagonals
-		     (else (begin (format #t "~%next point found: ~a" coord) coord)))))
-	(set! traversed-coords (cons coord traversed-coords))
-	result))))
+    (lambda (centre) ;; make-upstream?
+      ;;(format #t "~%centre: ~a" centre)
+      (lambda (element mask-element coord) ;; upstream?
+	;;(format #t "~%traversed-coords: ~a" traversed-coords)
+	(let ((result (cond
+		       ((eqv? element 9) #f)
+		       ((member coord traversed-coords) #f) 
+		       ((< element centre) #f) ;; if the candidate is less than the centre, it must be downstream
+		       ((not mask-element) #f) ;; ignore diagonals
+		       (else (begin (format #t "~%next point found: ~a" coord) coord)))))
+	  (set! traversed-coords (cons coord traversed-coords))
+	  result)))))
  
 
-(define (process world low-point)
+(define (process world low-point make-upstream?)
   (format #t "~%low-point ~a" low-point)
   (let* ((adjacent (adjacent-grid world low-point identity)) ;; make zero-array calls all local like below
          (mask (car adjacent))
@@ -245,23 +247,17 @@ OTHERWISE
                 (concatenate (array->list (centred-mask-grid mask)))
                 (make-2d-coords grid))))
 
-(define (recurse-basins world low-points)
-  (if (null? low-points)
-      '()
-      (let ((result (process world (car low-points))))
-        (cons (cons result (recurse-basins world result))
-              (recurse-basins world (cdr low-points))))))
-
-(define (flatten1 lists)               
-  (if (not (pair? lists))
-      (list lists)
-      (fold (lambda (right left)
-              (append left (flatten1 right)))
-            '()
-            lists)))
+(define (make-recurse-basins make-upstream?)
+  (letrec ((recurse-basins (lambda (world low-points)
+			     (if (null? low-points)
+				 '()
+				 (let ((result (process world (car low-points) make-upstream?)))
+				   (cons (cons result (recurse-basins world result))
+					 (recurse-basins world (cdr low-points))))))))
+    (display " PARP! ")
+    recurse-basins))
 
 (define (flatten lists)
-  ;;(format #t "~%lists: ~a car: ~a" lists (number? (car lists)))
   (cond
    ((null? lists) (begin (display " MOO ") '()))
    ((and (pair? lists)
@@ -290,8 +286,9 @@ OTHERWISE
       
       (format #t "~%~%Part 2: ~a~%" ((compose (cut apply * <>) (cut take <> 3) (cut sort <> >))
 				     (map (compose length delete-duplicates flatten)
-					  (map append (recurse-basins world low-points)
-					       (map list low-points)))))
+					  (let ((rb (make-recurse-basins (make-make-upstream?))))
+					    (map append (rb world low-points)
+						 (map list low-points))))))
       ;; add low-points to the basin
       ;;(format #t "~%~%Part 2: ~a~%" (map (lambda (lpb) (count null? (concatenate lpb))) (recurse-basins world low-points)))
       )))
