@@ -255,11 +255,20 @@ OTHERWISE
             lists)))
 
 (define (flatten lists)
-  (format #t "~%lists: ~a car: ~a" lists (number? (car lists)))
+  ;;(format #t "~%lists: ~a car: ~a" lists (number? (car lists)))
   (cond
    ((null? lists) (begin (display " MOO ") '()))
-   ((number? lists) (begin (display " NUMBER ") lists)
-   ((pair? lists) (begin (display " ELSE ") (list (flatten (car lists)) (flatten (cdr lists)))))))
+   ((and (pair? lists)
+	 (pair? (car lists))
+	 (number? (caar lists))) (begin (display (car lists))
+					(cons (car lists)
+					      (begin
+						(display (cdr lists))
+						(flatten (cdr lists))))))
+   ((pair? lists) (begin (display " ELSE ")
+			 (cons (flatten (car lists))
+			       (flatten (cdr lists)))))
+   (else (error "oops"))))
    
 (define (main args)
   (let* ((world (parse-input "test_input.txt"))
