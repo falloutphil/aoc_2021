@@ -260,13 +260,9 @@ OTHERWISE
    ((null? lists) (begin (display " MOO ") '()))
    ((and (pair? lists)
 	 (pair? (car lists))
-	 (number? (caar lists))) (begin (display (car lists))
-					(cons (car lists)
-					      (begin
-						(display (cdr lists))
-						(flatten (cdr lists))))))
+	 (number? (caar lists))) lists)
    ((pair? lists) (begin (display " ELSE ")
-			 (cons (flatten (car lists))
+			 (append (flatten (car lists))
 			       (flatten (cdr lists)))))
    (else (error "oops"))))
    
