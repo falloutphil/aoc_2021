@@ -218,10 +218,12 @@ OTHERWISE
       ;;(format #t "~%2d result: ~a" result)
       result)))
 
-;; each centre is only tried once in the outer loop
-;; but what about recursively adding?
-
 (define (make-make-upstream?)
+  "Make a function that makes an upstream check function.
+   The outer make allows for us to carry around the state of
+   previously traversed centres in case the doubly recursive
+   algorithm re-adds points we've already traversed - causing deadlocks.
+   The second make carries the state local to a specific centre point."
   (let ((traversed-coords '()))
     (lambda (centre-coord centre) ;; make-upstream?
       ;;(format #t "~%centre: ~a" centre)
@@ -253,6 +255,10 @@ OTHERWISE
                 (make-2d-coords grid))))
 
 (define (make-recurse-basins make-upstream?)
+  "Create a function that will doubly-recursively walk
+   each low-point and any points upstream from those low-points.
+   We pass in a function to create an upstream check that is seeded
+   with a list of previously walked points."
   (letrec ((recurse-basins (lambda (world low-points)
 			     (if (null? low-points)
 				 '()
@@ -262,6 +268,8 @@ OTHERWISE
     recurse-basins))
 
 (define (flatten lists)
+  "Mine a list of lists of any depth, and return a single list of all
+   numerical pairs (coords) within the lists."
   (cond
    ((null? lists) '())
    ((and (pair? lists)
@@ -269,7 +277,7 @@ OTHERWISE
 	 (number? (caar lists))) lists)
    ((pair? lists) (append (flatten (car lists))
 			  (flatten (cdr lists))))
-   (else (error "oops"))))
+   (else (error "impossible!"))))
 
 (define (main args)
   (let* ((world (parse-input "input.txt"))
@@ -286,7 +294,16 @@ OTHERWISE
                       (+ sum 1 (array-ref world (car p) (cadr p))))
                     0
                     low-points))
-      
+
+      ;; embed each low-point in a list
+      ;; append this to a list of upstream points within the low-point's basin
+      ;; the make-make-upstream? creates a make-upstream? function carries a
+      ;; an initially empty list as closure to record all points walked within the world.
+      ;; We can use a single closure as each point can only ever exist in one basin.
+      ;; The resulting structure is an n-deep list of coords representing each
+      ;; point within a low-point's basin.  So we flatten each entry and calc the
+      ;; number of unique points in each basin (length).
+      ;; Finally sort the list take the 3 largest, and multiply them together.
       (format #t "~%~%Part 2: ~a~%" ((compose (cut apply * <>) (cut take <> 3) (cut sort <> >))
 				     (map (compose length delete-duplicates flatten)
 					  (let ((rb (make-recurse-basins (make-make-upstream?))))
