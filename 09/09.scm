@@ -70,7 +70,7 @@ OTHERWISE
 (define-module (day09)
   #:export (main)
   #:use-module (ice-9 rdelim) ;; read-line
-  #:use-module (srfi srfi-1) ;; concatenate, iota
+  #:use-module (srfi srfi-1) ;; concatenate, iota, delete-duplicates
   #:use-module (srfi srfi-9) ;; records
   #:use-module (srfi srfi-26) ;; cut
   #:use-module (srfi srfi-42)) ;; list-ec
@@ -267,7 +267,7 @@ OTHERWISE
    (else (error "oops"))))
    
 (define (main args)
-  (let* ((world (parse-input "test_input.txt"))
+  (let* ((world (parse-input "input.txt"))
          (world-coord-pairs (make-2d-coords world)))
     ;;(format #t "~%world: ~a~%" world)
     ;;(format #t "~%world array dimensions: ~a~%" world-coord-pairs)
@@ -282,9 +282,11 @@ OTHERWISE
                     0
                     low-points))
       
-      (format #t "~%~%Part 2: ~a~%" (map flatten
-					 (map append (recurse-basins world low-points)
-					      (map list low-points)))) ;; add low-points to the basin
+      (format #t "~%~%Part 2: ~a~%" ((compose (cut apply * <>) (cut take <> 3) (cut sort <> >))
+				     (map (compose length delete-duplicates flatten)
+					  (map append (recurse-basins world low-points)
+					       (map list low-points)))))
+	      ;; add low-points to the basin
       ;;(format #t "~%~%Part 2: ~a~%" (map (lambda (lpb) (count null? (concatenate lpb))) (recurse-basins world low-points)))
       )))
 
