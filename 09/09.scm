@@ -96,7 +96,7 @@ OTHERWISE
   (list->array 2 (array->list arr)))
 
 ;; not convinced about origin-translation!
-(define (make-sub-grid world origin-translation)
+(define (make-sub-grid world)
   "Returns a function that takes a slice of the large array."
   (lambda (i-bounds j-bounds)
     ;; list is just a pass-through so we don't change
@@ -105,7 +105,7 @@ OTHERWISE
     ;; without coordinates.
     ;; The trick will be filtering out all the diagonals!
     ;;(format #t "~%i bounds: ~a j bounds: ~a" i-bounds j-bounds)
-    (origin-translation (make-shared-array world list i-bounds j-bounds))))
+    (make-shared-array world list i-bounds j-bounds)))
 
 
 ;; Arrays returned by make-sub-grid are regular/rectangular arrays,
@@ -144,11 +144,12 @@ OTHERWISE
 (define (low-point? world coords)
   "Are the coords a low-point on the world array?"
   (let* ((result #t)
-         (grid-pair (adjacent-grid world coords zero-array-origin)) ;; mask and subarray as pair
+         (grid-pair (adjacent-grid world coords)) ;; mask and subarray as pair
          (sub (cdr grid-pair))
+	 (sub-zero-array (zero-array-origin sub)) ;; reset array bound to start at (0,0)
          (c-mask (car grid-pair))
-         ;; this is the reason we have to 0-anchor our arrays which is expensive :-(
-         (c (array-ref sub (centred-mask-i c-mask) (centred-mask-j c-mask)))) ;; value @ centre
+         ;; this is the reason we have to 0-anchor our arrays to use our 0-anchored masks
+         (c (array-ref sub-zero-array (centred-mask-i c-mask) (centred-mask-j c-mask)))) ;; value @ centre
     ;;(format #t "~%world coords: (~a, ~a)" i j)
     ;;(format #t "~%grid: ~a" (centred-mask-grid c-mask))
     ;;(format #t "~%i: ~a" (centred-mask-i c-mask))
@@ -157,7 +158,7 @@ OTHERWISE
     (array-for-each (lambda (sub-v mask-v)
                       ;;(format #t "~%sub-v: ~a mask-v: ~a" sub-v mask-v)
                       (when mask-v (set! result (and result (< c sub-v))))) ;; the key line!
-                    sub (centred-mask-grid c-mask))
+                    sub-zero-array (centred-mask-grid c-mask))
     result))
 
 ;; Helper functions for finding bounds
@@ -175,14 +176,14 @@ OTHERWISE
 
 ;; Create the slice from the world and associates
 ;; it with a mask of points to check.
-(define (adjacent-grid world coords origin-translation)
+(define (adjacent-grid world coords)
   "Return grid centered on (i j)."
   (let* ((i (car coords))
          (j (cadr coords))
          (dims (array-dimensions world))
          (cols (1- (cadr dims)))
          (rows (1- (car dims)))
-         (sub-grid (make-sub-grid world origin-translation)))
+         (sub-grid (make-sub-grid world)))
     ;;(format #t "~%cols: ~a rows: ~a" cols rows)
     (cond ;; order is important!
      ;; top left
@@ -243,7 +244,7 @@ OTHERWISE
 
 (define (process world low-point make-upstream?)
   ;;(format #t "~%low-point ~a" low-point)
-  (let* ((adjacent (adjacent-grid world low-point identity)) ;; make zero-array calls all local like below
+  (let* ((adjacent (adjacent-grid world low-point)) ;; make zero-array calls all local like below
          (mask (car adjacent))
          (grid (cdr adjacent))
          (c (array-ref (zero-array-origin grid) (centred-mask-i mask) (centred-mask-j mask)))
@@ -303,6 +304,8 @@ OTHERWISE
       ;; The resulting structure is an n-deep list of coords representing each
       ;; point within a low-point's basin.  So we flatten each entry and calc the
       ;; number of unique points in each basin (length).
+      ;; Delete duplicates is still required despite recording of all points walked,
+      ;; because the appending on the low-points list at the end may produce duplicates (I think).
       ;; Finally sort the list take the 3 largest, and multiply them together.
       (format #t "~%~%Part 2: ~a~%" ((compose (cut apply * <>) (cut take <> 3) (cut sort <> >))
 				     (map (compose length delete-duplicates flatten)
@@ -346,4 +349,4 @@ else (map fn new list)
 4| 9, *, 9, 9, 9, *, !, *, *, *
 
 
-#!
+!#
