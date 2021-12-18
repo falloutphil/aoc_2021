@@ -282,7 +282,9 @@ OTHERWISE
                     0
                     low-points))
       
-      (format #t "~%~%Part 2: ~a~%" (flatten (map append (recurse-basins world low-points) (map list low-points)))) ;; add low-points to the basin
+      (format #t "~%~%Part 2: ~a~%" (map flatten
+					 (map append (recurse-basins world low-points)
+					      (map list low-points)))) ;; add low-points to the basin
       ;;(format #t "~%~%Part 2: ~a~%" (map (lambda (lpb) (count null? (concatenate lpb))) (recurse-basins world low-points)))
       )))
 
