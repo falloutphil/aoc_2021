@@ -98,15 +98,9 @@ OTHERWISE
 ;; not convinced about origin-translation!
 (define (make-sub-grid world)
   "Returns a function that takes a slice of the large array."
-  (lambda (i-bounds j-bounds)
     ;; list is just a pass-through so we don't change
-    ;; the coordinate system.  The idea is to use
-    ;; array-for-each or similar to traverse the array
-    ;; without coordinates.
-    ;; The trick will be filtering out all the diagonals!
-    ;;(format #t "~%i bounds: ~a j bounds: ~a" i-bounds j-bounds)
-    (make-shared-array world list i-bounds j-bounds)))
-
+    ;; the coordinate system.
+    (cut make-shared-array world list <> <>))
 
 ;; Arrays returned by make-sub-grid are regular/rectangular arrays,
 ;; use masks to highlight the elements inside each slice that we
@@ -186,21 +180,13 @@ OTHERWISE
          (sub-grid (make-sub-grid world)))
     ;;(format #t "~%cols: ~a rows: ~a" cols rows)
     (cond ;; order is important!
-     ;; top left
      ((and (< (1- i) 0) (< (1- j) 0)) `(,top-left . ,(sub-grid (list+inc i) (list+inc j))))
-     ;; top right
      ((and (< (1- i) 0) (> (1+ j) cols)) `(,top-right . ,(sub-grid (list+inc i) (list+dec j))))
-     ;; bottom left
      ((and (> (1+ i) rows) (< (1- j) 0)) `(,bottom-left . ,(sub-grid (list+dec i) (list+inc j))))
-     ;; bottom right
      ((and (> (1+ i) rows) (> (1+ j) cols)) `(,bottom-right . ,(sub-grid (list+dec i) (list+dec j))))
-     ;; top row
      ((< (1- i) 0) `(,top-row . ,(sub-grid (list+inc i) (list+-inc j))))
-     ;; bottow row
      ((> (1+ i) rows) `(,bottom-row . ,(sub-grid (list+dec i) (list+-inc j))))
-     ;; left col
      ((< (1- j) 0) `(,left-col . ,(sub-grid (list+-inc i) (list+inc j))))
-     ;; right col
      ((> (1+ j) cols) `(,right-col . ,(sub-grid (list+-inc i) (list+dec j))))
      ;; elsewhere, not on an edge
      (else `(,other . ,(sub-grid (list+-inc i) (list+-inc j)))))))
@@ -208,6 +194,7 @@ OTHERWISE
 (define (make-2d-coords arr)
   "Create a set of coordinate pairs for the given array."
   (let* ((dims (array-shape arr))
+	 ;; get bounds in form iota likes
          (col-bounds (list (- (cadar dims) -1 (caar dims)) (caar dims)))
          (row-bounds (list (- (cadadr dims) -1 (caadr dims)) (caadr dims))))
     ;;(format #t "~%dims: ~a" dims)
@@ -223,7 +210,9 @@ OTHERWISE
   "Make a function that makes an upstream check function.
    The outer make allows for us to carry around the state of
    previously traversed centres in case the doubly recursive
-   algorithm re-adds points we've already traversed - causing deadlocks.
+   algorithm re-adds centre points we've already traversed - causing deadlocks.
+   This can happen if 2 contiguous points have the same height for example,
+   Each one will continually re-add the other as being upstream of it.
    The second make carries the state local to a specific centre point."
   (let ((traversed-coords '()))
     (lambda (centre-coord centre) ;; make-upstream?
@@ -242,14 +231,21 @@ OTHERWISE
 		    result)))))))
  
 
-(define (process world low-point make-upstream?)
+(define (filter-neighbouring-points world low-point make-upstream?)
+  "Get surrounding points and mask of valid points.
+   Find the value at the centre.
+   Return a filtered list of all the points upstream of the centre point."
   ;;(format #t "~%low-point ~a" low-point)
-  (let* ((adjacent (adjacent-grid world low-point)) ;; make zero-array calls all local like below
+  (let* ((adjacent (adjacent-grid world low-point))
          (mask (car adjacent))
          (grid (cdr adjacent))
-         (c (array-ref (zero-array-origin grid) (centred-mask-i mask) (centred-mask-j mask)))
+         (c (array-ref grid (car low-point) (cadr low-point)))
          (upstream? (make-upstream? low-point c))) ;; c is value @ centre
     ;;(format #t "~%grid: ~a" grid)
+    ;; Get a list of the grid coordinates centred on c
+    ;; Squash both the grid and the mask value into a 1D list representation
+    ;; kick out any coordinates that are not upstream from the low point,
+    ;; returning the remaining coordinates as a single list.
     (filter-map upstream?
                 (concatenate (array->list grid))
                 (concatenate (array->list (centred-mask-grid mask)))
@@ -262,9 +258,13 @@ OTHERWISE
    with a list of previously walked points."
   (letrec ((recurse-basins (lambda (world low-points)
 			     (if (null? low-points)
-				 '()
-				 (let ((result (process world (car low-points) make-upstream?)))
-				   (cons (cons result (recurse-basins world result))
+				 '() ;; base case start with an empty list
+				 (let ((coords (filter-neighbouring-points world (car low-points) make-upstream?)))
+				   ;; doubly recursive - cons all the coordinates in the neighbourhood of the
+				   ;; low point (dictated by masks) that are upstream of the low-point, with any
+				   ;; points that are then upstream from these new neighbourhood points just generated, and
+				   ;; cons all this to the results of all the other initial low-points.
+				   (cons (cons coords (recurse-basins world coords))
 					 (recurse-basins world (cdr low-points))))))))
     recurse-basins))
 
@@ -285,21 +285,18 @@ OTHERWISE
          (world-coord-pairs (make-2d-coords world)))
     ;;(format #t "~%world: ~a~%" world)
     ;;(format #t "~%world array dimensions: ~a~%" world-coord-pairs)
-    (let ((low-points (filter (lambda (coords)
-                                (let ((result (low-point? world coords)))
-                                  ;;(format #t "~%filter result: ~a~%" result)
-                                  result))
+    (let ((low-points (filter (cut low-point? world <>)
                               world-coord-pairs)))
       (format #t "~%~%Part 1: ~a~%"
-              (fold (lambda (p sum)
+              (fold (lambda (p sum) ;; sum all the "heights+1"
                       (+ sum 1 (array-ref world (car p) (cadr p))))
                     0
                     low-points))
 
-      ;; embed each low-point in a list
-      ;; append this to a list of upstream points within the low-point's basin
-      ;; the make-make-upstream? creates a make-upstream? function carries a
-      ;; an initially empty list as closure to record all points walked within the world.
+      ;; embed each low-point in a list and "map append" so each low-point is
+      ;; added to it's corresponding list of basin points returned by recurse-basins.
+      ;; the make-make-upstream? creates a make-upstream? function that carries 
+      ;; an initially empty list as a closure to record all points walked within the world.
       ;; We can use a single closure as each point can only ever exist in one basin.
       ;; The resulting structure is an n-deep list of coords representing each
       ;; point within a low-point's basin.  So we flatten each entry and calc the
