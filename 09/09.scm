@@ -95,7 +95,6 @@ OTHERWISE
   "A naff way of resetting the array origin to (0 0)."
   (list->array 2 (array->list arr)))
 
-;; not convinced about origin-translation!
 (define (make-sub-grid world)
   "Returns a function that takes a slice of the large array."
     ;; list is just a pass-through so we don't change
