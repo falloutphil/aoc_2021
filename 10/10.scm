@@ -7,6 +7,7 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
   #:use-module (oop goops) 
   #:use-module (ice-9 rdelim) ;; read-line
   #:use-module (srfi srfi-1) ;; concatenate, filter-map, compose
+  #:use-module (srfi srfi-26) ;; cut
   #:use-module (srfi srfi-42)) ;; list-ec
 
 (define (file->list filename)
@@ -55,12 +56,19 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
   "Stack output for format and display."
   (format port "~a" (slot-ref self 's)))
 
-;; Scores for each corruption!
-(define bracket-points
+;; Scores for each corruption
+(define bracket-points-1
   '((#\) . 3)
-   (#\] . 57)
-   (#\} . 1197)
-   (#\> . 25137)))
+    (#\] . 57)
+    (#\} . 1197)
+    (#\> . 25137)))
+
+;; Scores for each completion
+(define bracket-points-2
+  '((#\) . 1)
+    (#\] . 2)
+    (#\} . 3)
+    (#\> . 4)))
 
 (define (is-corrupt? bracket-list)
   "Does a given line (as a list) contain a corrupt bracket?"
@@ -79,7 +87,7 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
 		 ((eqv? bracket
 			(translate-bracket (pop! stack)))
 		  (loop (cdr bl)))
-		 (else (assv-ref bracket-points
+		 (else (assv-ref bracket-points-1
 				 bracket))))))))) ;; return bad bracket rather than just #t
 
 
@@ -95,11 +103,17 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
 		(push! stack bracket)
 		(pop! stack))
 	    (loop (cdr bl)))))))
-		  
+
 (define (main args)
-  (let* ((lofl-brackets (file->list "test_input.txt"))
+  (let* ((lofl-brackets (file->list "input.txt"))
 	 (corrupt-scores (filter-map is-corrupt? lofl-brackets))
-	 (lofl-uncorrupt (filter (compose not is-corrupt?) lofl-brackets)))
+	 (lofl-uncorrupt (filter (compose not is-corrupt?) lofl-brackets))
+	 (completion-scores (map (cut fold (lambda (bracket sum)
+					     (+ (* sum 5) (assv-ref bracket-points-2 bracket)))
+				      0 <>)
+				 (map complete-brackets lofl-uncorrupt))))
     ;;(format #t "~%initial list: ~a~%" lofl-brackets)
     (format #t "~%Part 1: ~a~%" (reduce + 0 corrupt-scores))
-    (format #t "~%Part 2: ~a~%" (map complete-brackets lofl-uncorrupt))))
+    (format #t "~%Part 2: ~a~%" ((compose car drop)
+				 (sort completion-scores <)
+				 (euclidean-quotient (length completion-scores) 2)))))
