@@ -6,9 +6,7 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
   #:export (main)
   #:use-module (oop goops) 
   #:use-module (ice-9 rdelim) ;; read-line
-  #:use-module (srfi srfi-1) ;; concatenate
-  #:use-module (srfi srfi-11) ;; let-values
-  #:use-module (srfi srfi-26) ;; cut
+  #:use-module (srfi srfi-1) ;; concatenate, filter-map
   #:use-module (srfi srfi-42)) ;; list-ec
 
 (define (file->list filename)
@@ -17,22 +15,14 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
     (lambda (p)
       (map string->list (list-ec (:port line p read-line) line)))))
 
-
-;; filter for openners
-;; convert to closers and reverse
-;; should match filter for closers
-
 (define (open-bracket? b-char)
+  "#t for open brackets, #f for everything else."
   (case b-char
     ((#\( #\[ #\< #\{) #t)
     (else #f)))
 
-(define (close-bracket? b-char)
-  (case b-char
-    ((#\) #\] #\> #\}) #t)
-    (else #f)))
-
 (define (translate-bracket b-char)
+  "Return corresponding closing bracket or error."
   ;;(format #t "~%b-char: ~a" b-char)
   (case b-char
     ((#\() #\))
@@ -40,27 +30,40 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
     ((#\<) #\>)
     ((#\{) #\})
     (else (error "impossible!"))))
-    
+
+;; LIFO Stack modeled as a list
 (define-class <stack> ()
   (s #:init-value '()))
 
 (define-method (push! (self <stack>) . args)
+  "Push any args onto the given stack."
   (slot-set! self 's (append (reverse args)
 			     (slot-ref self 's))))
 
 (define-method (pop! (self <stack>))
+  "Pop returns the value it removes."
   (let ((result (car (slot-ref self 's))))
     (slot-set! self 's (cdr (slot-ref self 's)))
     result))
 
 (define-method (empty? (self <stack>))
+  "Stack is empty?"
   (null? (slot-ref self 's)))
 
 ;; pretty print stacks - https://www.wedesoft.de/software/2014/03/02/oop-with-goops/
 (define-method (display (self <stack>) port)
+  "Stack output for format and display."
   (format port "~a" (slot-ref self 's)))
 
+;; Scores for each corruption!
+(define bracket-points
+  '((#\) . 3)
+   (#\] . 57)
+   (#\} . 1197)
+   (#\> . 25137)))
+
 (define (is-corrupt? bracket-list)
+  "Does a given line (as a list) contain a corrupt bracket?"
   (let ((stack (make <stack>)))
     (let loop ((bl bracket-list))
       ;;(format #t "~%stack: ~a, list: ~a" stack bl)
@@ -72,16 +75,16 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
 		  (push! stack bracket)
 		  (loop (cdr bl)))
 		(cond ;; closing bracket
-		 ((empty? stack) #t) ;; if the stack is empty can't be closing!
+		 ((empty? stack) 0) ;; if the stack is empty can't be closing!
 		 ((eqv? bracket
 			(translate-bracket (pop! stack)))
 		  (loop (cdr bl)))
-		 (else #t))))))))
+		 (else (assv-ref bracket-points
+				 bracket))))))))) ;; return bad bracket rather than just #t
 
-	    
 	      
 (define (main args)
-  (let* ((lofl-brackets (file->list "test_input.txt"))
-	 (corrupt-lines (filter is-corrupt? lofl-brackets)))
-    (format #t "~%initial list: ~a~%" (length lofl-brackets))
-    (format #t "~%corrupt: ~a~%" (length corrupt-lines))))
+  (let* ((lofl-brackets (file->list "input.txt"))
+	 (corrupt-scores (filter-map is-corrupt? lofl-brackets)))
+    ;;(format #t "~%initial list: ~a~%" lofl-brackets)
+    (format #t "~%Part 1: ~a~%" (reduce + 0 corrupt-scores))))
