@@ -22,12 +22,12 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
 ;; convert to closers and reverse
 ;; should match filter for closers
 
-(define (open-bracket b-char)
+(define (open-bracket? b-char)
   (case b-char
     ((#\( #\[ #\< #\{) #t)
     (else #f)))
 
-(define (close-bracket b-char)
+(define (close-bracket? b-char)
   (case b-char
     ((#\) #\] #\> #\}) #t)
     (else #f)))
@@ -45,23 +45,43 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
   (s #:init-value '()))
 
 (define-method (push! (self <stack>) . args)
-  (slot-set! self 's (append (reverse args) (slot-ref self 's))))
+  (slot-set! self 's (append (reverse args)
+			     (slot-ref self 's))))
 
 (define-method (pop! (self <stack>))
   (let ((result (car (slot-ref self 's))))
     (slot-set! self 's (cdr (slot-ref self 's)))
     result))
 
-;; pretty print stacks
+(define-method (empty? (self <stack>))
+  (null? (slot-ref self 's)))
+
+;; pretty print stacks - https://www.wedesoft.de/software/2014/03/02/oop-with-goops/
 (define-method (display (self <stack>) port)
   (format port "~a" (slot-ref self 's)))
-  
 
+(define (is-corrupt? bracket-list)
+  (let ((stack (make <stack>)))
+    (let loop ((bl bracket-list))
+      ;;(format #t "~%stack: ~a, list: ~a" stack bl)
+      (if (null? bl)
+	  #f
+	  (let ((bracket (car bl)))
+	    (if (open-bracket? bracket)
+		(begin
+		  (push! stack bracket)
+		  (loop (cdr bl)))
+		(cond ;; closing bracket
+		 ((empty? stack) #t) ;; if the stack is empty can't be closing!
+		 ((eqv? bracket
+			(translate-bracket (pop! stack)))
+		  (loop (cdr bl)))
+		 (else #t))))))))
+
+	    
+	      
 (define (main args)
-  (let* ((list-of-brackets (file->list "test_input.txt"))
-	 (open-list (map (cut filter open-bracket <>) list-of-brackets))
-	 (close-list (map (cut filter close-bracket <>) list-of-brackets)))
-    (format #t "~%file: ~a~%" (file->list "test_input.txt"))
-    (format #t "~%open: ~a~%" open-list)
-    (format #t "~%close: ~a~%" close-list)
-    (format #t "~%result1: ~a~%result2: ~a~%" (car (map (cut map translate-bracket <>) open-list)) (car close-list))))
+  (let* ((lofl-brackets (file->list "test_input.txt"))
+	 (corrupt-lines (filter is-corrupt? lofl-brackets)))
+    (format #t "~%initial list: ~a~%" (length lofl-brackets))
+    (format #t "~%corrupt: ~a~%" (length corrupt-lines))))
