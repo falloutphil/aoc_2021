@@ -6,7 +6,7 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
   #:export (main)
   #:use-module (oop goops) 
   #:use-module (ice-9 rdelim) ;; read-line
-  #:use-module (srfi srfi-1) ;; concatenate, filter-map, compose
+  #:use-module (srfi srfi-1) ;; concatenate, filter-map, compose, append-reverse
   #:use-module (srfi srfi-26) ;; cut
   #:use-module (srfi srfi-42)) ;; list-ec
 
@@ -34,27 +34,27 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
 
 ;; LIFO Stack modeled as a list
 (define-class <stack> ()
-  (s #:init-value '()))
+  (s #:init-value '() #:getter get-stack))
 
 (define-method (push! (self <stack>) . args)
   "Push any args onto the given stack."
-  (slot-set! self 's (append (reverse args)
-			     (slot-ref self 's))))
+  (slot-set! self 's (append-reverse args ;; not strictly needed
+				     (get-stack self))))
 
 (define-method (pop! (self <stack>))
   "Pop returns the value it removes."
   (let ((result (car (slot-ref self 's))))
-    (slot-set! self 's (cdr (slot-ref self 's)))
+    (slot-set! self 's (cdr (get-stack self)))
     result))
 
 (define-method (empty? (self <stack>))
   "Stack is empty?"
-  (null? (slot-ref self 's)))
+  (null? (get-stack self)))
 
 ;; pretty print stacks - https://www.wedesoft.de/software/2014/03/02/oop-with-goops/
 (define-method (display (self <stack>) port)
   "Stack output for format and display."
-  (format port "~a" (slot-ref self 's)))
+  (format port "~a" (get-stack self)))
 
 ;; Scores for each corruption
 (define bracket-points-1
@@ -97,7 +97,7 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
     (let loop ((bl bracket-list))
       ;;(format #t "~%stack: ~a, list: ~a" stack bl)
       (if (null? bl)
-	  (map translate-bracket (slot-ref stack 's))
+	  (map translate-bracket (get-stack stack))
 	  (let ((bracket (car bl)))
 	    (if (open-bracket? bracket)
 		(push! stack bracket)
