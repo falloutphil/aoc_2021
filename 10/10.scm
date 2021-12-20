@@ -4,6 +4,7 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
 
 (define-module (day10)
   #:export (main)
+  #:use-module (oop goops) 
   #:use-module (ice-9 rdelim) ;; read-line
   #:use-module (srfi srfi-1) ;; concatenate
   #:use-module (srfi srfi-11) ;; let-values
@@ -32,7 +33,7 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
     (else #f)))
 
 (define (translate-bracket b-char)
-  (format #t "~%b-char: ~a" b-char)
+  ;;(format #t "~%b-char: ~a" b-char)
   (case b-char
     ((#\() #\))
     ((#\[) #\])
@@ -40,7 +41,22 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
     ((#\{) #\})
     (else (error "impossible!"))))
     
-    
+(define-class <stack> ()
+  (s #:init-value '()))
+
+(define-method (push! (self <stack>) . args)
+  (slot-set! self 's (append (reverse args) (slot-ref self 's))))
+
+(define-method (pop! (self <stack>))
+  (let ((result (car (slot-ref self 's))))
+    (slot-set! self 's (cdr (slot-ref self 's)))
+    result))
+
+;; pretty print stacks
+(define-method (display (self <stack>) port)
+  (format port "~a" (slot-ref self 's)))
+  
+
 (define (main args)
   (let* ((list-of-brackets (file->list "test_input.txt"))
 	 (open-list (map (cut filter open-bracket <>) list-of-brackets))
@@ -48,4 +64,4 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
     (format #t "~%file: ~a~%" (file->list "test_input.txt"))
     (format #t "~%open: ~a~%" open-list)
     (format #t "~%close: ~a~%" close-list)
-    (format #t "~%result1: ~a~%result2: ~a~%" (reverse (map (cut map translate-bracket <>) open-list)) close-list)))
+    (format #t "~%result1: ~a~%result2: ~a~%" (car (map (cut map translate-bracket <>) open-list)) (car close-list))))
