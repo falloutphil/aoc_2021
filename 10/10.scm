@@ -6,7 +6,7 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
   #:export (main)
   #:use-module (oop goops) 
   #:use-module (ice-9 rdelim) ;; read-line
-  #:use-module (srfi srfi-1) ;; concatenate, filter-map
+  #:use-module (srfi srfi-1) ;; concatenate, filter-map, compose
   #:use-module (srfi srfi-42)) ;; list-ec
 
 (define (file->list filename)
@@ -82,9 +82,24 @@ exec guile -e '(@ (day10) main)' -s "$0" "$@"
 		 (else (assv-ref bracket-points
 				 bracket))))))))) ;; return bad bracket rather than just #t
 
-	      
+
+(define (complete-brackets bracket-list)
+  "Complete any unclosed brackets"
+  (let ((stack (make <stack>)))
+    (let loop ((bl bracket-list))
+      ;;(format #t "~%stack: ~a, list: ~a" stack bl)
+      (if (null? bl)
+	  (map translate-bracket (slot-ref stack 's))
+	  (let ((bracket (car bl)))
+	    (if (open-bracket? bracket)
+		(push! stack bracket)
+		(pop! stack))
+	    (loop (cdr bl)))))))
+		  
 (define (main args)
-  (let* ((lofl-brackets (file->list "input.txt"))
-	 (corrupt-scores (filter-map is-corrupt? lofl-brackets)))
+  (let* ((lofl-brackets (file->list "test_input.txt"))
+	 (corrupt-scores (filter-map is-corrupt? lofl-brackets))
+	 (lofl-uncorrupt (filter (compose not is-corrupt?) lofl-brackets)))
     ;;(format #t "~%initial list: ~a~%" lofl-brackets)
-    (format #t "~%Part 1: ~a~%" (reduce + 0 corrupt-scores))))
+    (format #t "~%Part 1: ~a~%" (reduce + 0 corrupt-scores))
+    (format #t "~%Part 2: ~a~%" (map complete-brackets lofl-uncorrupt))))
