@@ -3,6 +3,66 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
 !#
 
 #!
+
+In src - eval buffer C-c C-b
+In repl - Set current module C-c C-m 
+Quit repl - C-c C-q
+Switch between src and repl (and back) C-c C-z
+
+Load module switch and enter in repl:
+M-x run-geiser C-c C-b C-c C-z C-c C-m
+
+Or there is a shortcut - works even if repl isn't open:
+C-c C-a
+
+But I don't seem to be able to run it.
+
+(main '())
+
+,module or ,m - current module
+,import - other imports apart from current module
+
+,profile or ,pr - profile expression
+
+scheme@(day09)> ,pr (main '())
+
+
+Part 1: 539
+
+
+Part 2: 736920
+%     cumulative   self             
+time   seconds     seconds  procedure
+ 67.12      1.06      0.81  srfi/srfi-1.scm:734:0:find-tail
+ 10.96      0.13      0.13  srfi/srfi-1.scm:951:15
+  9.59      0.12      0.12  equal?
+  5.48      0.07      0.07  %after-gc-thunk
+  1.37      0.03      0.02  concatenate
+  1.37      0.03      0.02  list
+  1.37      0.02      0.02  anon #x239b51c
+  1.37      0.02      0.02  make-shared-array
+  1.37      0.02      0.02  <current input>:221:31
+  0.00    185.57      0.00  <current input>:277:27:recurse-basins
+  0.00      1.50      0.00  srfi/srfi-1.scm:584:5:map1
+  0.00      1.21      0.00  <current input>:301:0:main
+  0.00      1.15      0.00  <current input>:252:0:filter-neighbouring-points
+  0.00      1.06      0.00  <current input>:236:4
+  0.00      0.07      0.00  anon #x239b590
+  0.00      0.05      0.00  <current input>:191:0:adjacent-grid
+  0.00      0.05      0.00  filter
+  0.00      0.05      0.00  <current input>:156:0:low-point?
+  0.00      0.03      0.00  make-shared-array
+  0.00      0.02      0.00  list->array
+  0.00      0.02      0.00  <current input>:212:0:make-2d-coords
+  0.00      0.02      0.00  array->list
+---
+Sample count: 73
+Total time: 1.213223684 seconds (0.155471916 seconds in GC)
+scheme@(day09)>
+
+------------------------------------
+
+
 Details of masks required on sub arrays to ignore diagonals.
 
 c  = centre (#f in the actual arrays)
@@ -70,6 +130,7 @@ OTHERWISE
 (define-module (day09)
   #:export (main)
   #:use-module (ice-9 rdelim) ;; read-line
+  ;;#:use-module (ice-9 futures)
   #:use-module (srfi srfi-1) ;; concatenate, iota, delete-duplicates
   #:use-module (srfi srfi-9) ;; records
   #:use-module (srfi srfi-26) ;; cut
@@ -97,9 +158,9 @@ OTHERWISE
 
 (define (make-sub-grid world)
   "Returns a function that takes a slice of the large array."
-    ;; list is just a pass-through so we don't change
-    ;; the coordinate system.
-    (cut make-shared-array world list <> <>))
+  ;; list is just a pass-through so we don't change
+  ;; the coordinate system.
+  (cut make-shared-array world list <> <>))
 
 ;; Arrays returned by make-sub-grid are regular/rectangular arrays,
 ;; use masks to highlight the elements inside each slice that we
@@ -224,11 +285,11 @@ OTHERWISE
 	      ;;(format #t "~%traversed-coords: ~a" traversed-coords)
 	      (let ((result (cond
 			     ((eqv? element 9) #f)
-			      ((< element centre) #f) ;; if the candidate is less than the centre, it must be downstream
-			      ((not mask-element) #f) ;; ignore diagonals
-			      (else coord))))
-		    result)))))))
- 
+			     ((< element centre) #f) ;; if the candidate is less than the centre, it must be downstream
+			     ((not mask-element) #f) ;; ignore diagonals
+			     (else coord))))
+		result)))))))
+
 
 (define (filter-neighbouring-points world low-point make-upstream?)
   "Get surrounding points and mask of valid points.
