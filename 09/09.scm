@@ -7,6 +7,7 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
 In src - eval buffer C-c C-b
 In repl - Set current module C-c C-m 
 Quit repl - C-c C-q
+In repl - Clear REPL C-c M-o 
 Switch between src and repl (and back) C-c C-z
 
 Load module switch and enter in repl:
@@ -22,10 +23,47 @@ But I don't seem to be able to run it.
 ,module or ,m - current module
 ,import - other imports apart from current module
 
+https://www.gnu.org/software/guile/manual/guile.html#REPL-Commands
+
+
+,trace or ,tr - trace expression
+
+
+scheme@(day09)> ,tr (main '())
+trace: |  (main ())
+trace: |  |  (parse-input)
+trace: |  |  (call-with-input-file "input.txt" #<procedure 16e9a28 at <unknown port>:150:4 (p)>)
+trace: |  |  |  (open-input-file "input.txt" #:binary #f #:encoding #f #:guess-encoding #f)
+trace: |  |  |  (open-file "input.txt" "r" #:encoding #f #:guess-encoding #f)
+trace: |  |  |  #<input: input.txt 13>
+trace: |  |  |  (_ #<input: input.txt 13>)
+trace: |  |  |  |  (replace #<directory (day09) 7f17e53d4960> map #<interface (guile) 7f17e8364dc0> #<procedure map (f l) | (f l1 l2) | (f …> …)
+trace: |  |  |  |  |  (_ #<interface (guile) 7f17e8364dc0>)
+trace: |  |  |  |  |  #<hash-table 7f17e83a23e0 0/31>
+trace: |  |  |  |  |  (hashq-ref #<hash-table 7f17e83a23e0 0/31> map)
+trace: |  |  |  |  |  #f
+trace: |  |  |  |  |  (_ #<interface (srfi srfi-1) 7f17e83c3320>)
+trace: |  |  |  |  |  #<hash-table 7f17e83e50c0 9/31>
+trace: |  |  |  |  |  (hashq-ref #<hash-table 7f17e83e50c0 9/31> map)
+trace: |  |  |  |  |  #t
+trace: |  |  |  |  |  (module-variable #<interface (guile) 7f17e8364dc0> map)
+trace: |  |  |  |  |  #<variable 7f17e838c7c0 value: #<procedure map (f l) | (f l1 l2) | (f l1 . rest)>>
+trace: |  |  |  |  |  (module-variable #<interface (srfi srfi-1) 7f17e83c3320> map)
+trace: |  |  |  |  |  #<variable 7f17e83eba20 value: #<procedure map (f l) | (f l1 l2) | (f l1 . rest)>>
+trace: |  |  |  |  #<variable 7f17e83eba20 value: #<procedure map (f l) | (f l1 l2) | (f l1 . rest)>>
+trace: |  |  |  |  (read-line #<input: input.txt 13>)
+trace: |  |  |  |  |  (%read-line #<input: input.txt 13>)
+trace: |  |  |  |  |  ("9976786789439313678999989767678999865435679398654323678999987654313468954569865334568916987643236789" . #\newline)
+|
+
+
 ,profile or ,pr - profile expression
 
-scheme@(day09)> ,pr (main '())
 
+
+scheme@(day09)> ,pr (main '())        OR
+scheme@(day09)> ,pr (main '()) #:count-calls? #t       OR
+scheme@(day09)> ,tr (main '())
 
 Part 1: 539
 
