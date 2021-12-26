@@ -4,7 +4,8 @@ exec guile -e '(@ (day09) main)' -s "$0" "$@"
 
 #!
 
-In src - eval buffer C-c C-b
+In src - eval buffer C-c C-b /// eval buffer and go C-c M-b
+In src - documentation for symbol at point C-c C-d C-d
 In repl - Set current module C-c C-m 
 Quit repl - C-c C-q
 In repl - Clear REPL C-c M-o 
