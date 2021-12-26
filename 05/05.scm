@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+# -*- mode:scheme; geiser-scheme-implemenatation: guile -*-
 exec guile -e '(@ (day05) main)' -s "$0" "$@"
 !#
 
