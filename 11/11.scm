@@ -71,6 +71,7 @@ Possible we'll need an array of classes, but start with int
       ;; The list of values obtained by evaluating "line" once for each binding in the sequence defined by the qualifiers.
       ;; reads from p until eof
       ;; line is read through the sequence (read-line p)
+      ;; line is the variable produced from repeatedly calling (read-line p) until eof?
       (list->array 2 (list-ec (:port line p read-line)
 			      (map (compose string->number string)
 				   (string->list line)))))))
