@@ -72,6 +72,7 @@ Possible we'll need an array of classes, but start with int
       ;; reads from p until eof
       ;; line is read through the sequence (read-line p)
       ;; line is the variable produced from repeatedly calling (read-line p) until eof?
+      ;; https://practical-scheme.net/gauche/man/gauche-refe/Eager-comprehensions.html
       (list->array 2 (list-ec (:port line p read-line)
 			      (list-ec (:string ch line)
 				       ((compose string->number string) ch)))))))
