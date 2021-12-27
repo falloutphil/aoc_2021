@@ -73,8 +73,9 @@ Possible we'll need an array of classes, but start with int
       ;; line is read through the sequence (read-line p)
       ;; line is the variable produced from repeatedly calling (read-line p) until eof?
       (list->array 2 (list-ec (:port line p read-line)
-			      (map (compose string->number string)
-				   (string->list line)))))))
+			      (list-ec (:string ch line)
+				       ((compose string->number string) ch)))))))
+
 
 
 (define (main args)
