@@ -80,29 +80,43 @@ Possible we'll need an array of classes, but start with int
 (define (energise! arr)
   (array-map! arr 1+ arr))
 
+(define (do-neighbours arr i j)
+  (format #t "~%flasher: (~a ~a)" i j)
+  (if (>= (array-ref arr i j) 9) ;; is he a flasher?
+      (let ((neighbours (filter ;; find legal neighbour coords
+			 (λ (n) (apply array-in-bounds? (cons arr n)))
+			 (neighbour-coords i j))))
+	(array-set! arr 0 i j) ;; reset the flasher
+	;;(format #t "~%neighbours: ~a" neighbours)
+	(for-each (λ (coord) ;; increment the neighbours
+		    ;;(format #t "~%coord: ~a" coord)
+		    (apply array-set! `(,arr
+					,(1+ (apply array-ref (cons arr coord)))
+					,@coord)))
+		  neighbours) 
+	(filter (λ (n) (>= (apply array-ref (cons arr n)) 9)) neighbours)) ;; return any new flashers
+      '())) ;; or nothing if he doesn't flash
+
+
 (define (make-neighbour-flash! arr)
   (λ (i j)
-    (if (>= (array-ref arr i j) 9)
-	(let ((neighbours (filter
-			   (λ (n) (apply array-in-bounds? (cons arr n)))
-			   (neighbour-coords i j))))
-	  (format #t "~%neighbours: ~a" neighbours)
-	  (for-each (λ (coord)
-		      (format #t "~%coord: ~a" coord)
-		      (apply array-set! `(,arr
-					  ,(1+ (apply array-ref (cons arr coord)))
-					  ,@coord)))
-		    neighbours))
-	(format #t "~%value: ~a" (array-ref arr i j)))))
+    (let recurse ((coords (list (list i j)))) ;; LoL of coords
+      (format #t "~%arr: ~a" arr)
+      (format #t "~%coord list: ~a" coords)
+      (cond
+       ((null? coords) '())
+       (else
+	(recurse (append (let ((i (caar coords))
+			       (j (cadar coords)))
+			   (do-neighbours arr i j))
+			 (cdr coords))))))))
 
 #!
-
 0 1 2 3 4
 1
 2   a b c
 3   d x e
 4   f g h
-
 !#
 
 (define (main args)
