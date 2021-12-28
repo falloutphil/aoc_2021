@@ -101,7 +101,7 @@ Possible we'll need an array of classes, but start with int
   (if (>= (array-ref arr i j) 9) ;; is he a flasher?
       (let ((neighbours (filter
 			 (λ (n) (and (apply array-in-bounds? (cons arr n)) ;; legal coord?
-				     (> (apply array-ref (cons arr n)) 0))) ;; ignore if zero (already flashed)
+				     (> (apply array-ref (cons arr n)) -1))) ;; ignore if zero (already flashed)
 			 (neighbour-coords i j))))
 	(array-set! arr -1 i j) ;; reset the flasher, -1 will set it to 0 when it is engerised
 	;;(format #t "~%neighbours: ~a" neighbours)
