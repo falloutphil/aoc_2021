@@ -72,6 +72,22 @@ Possible we'll need an array of classes, but start with int
 			      (list-ec (:string ch line)
 				       (- (char->integer ch) 48)))))))
 
+(define (make-2d-coords arr)
+  "Create a set of coordinate pairs for the given array."
+  (let* ((dims (array-shape arr))
+	 ;; get bounds in form iota likes
+         (col-bounds (list (- (cadar dims) -1 (caar dims)) (caar dims)))
+         (row-bounds (list (- (cadadr dims) -1 (caadr dims)) (caadr dims))))
+    ;;(format #t "~%dims: ~a" dims)
+    (let ((result (concatenate
+                   (map (lambda (col)
+                          (map (lambda (row) (list col row))
+                               (apply iota row-bounds)))
+                        (apply iota col-bounds)))))
+      ;;(format #t "~%2d result: ~a" result)
+      result)))
+
+
 (define (neighbour-coords i j)
   `((,(1- i) ,(1- j)) (,(1- i) ,j) (,(1- i) ,(1+ j))
     (,i ,(1- j)) (,i ,(1+ j))
@@ -104,7 +120,7 @@ Possible we'll need an array of classes, but start with int
       (format #t "~%arr: ~a" arr)
       (format #t "~%coord list: ~a" coords)
       (cond
-       ((null? coords) 0)
+       ((null? coords) #t)
        (else
 	(recurse (append (let ((i (caar coords))
 			       (j (cadar coords)))
@@ -124,7 +140,7 @@ Possible we'll need an array of classes, but start with int
 	 (nf! (make-neighbour-flash! octopus-arr)))
     (energise! octopus-arr)
     (format #t "~%~a~%" octopus-arr)
-    (array-index-map! octopus-arr nf!)
+    (for-each (cut apply nf! <>) (make-2d-coords octopus-arr))
     ;;(nf! 0 2)
     ;; we still need to loop the engerising here!
     (format #t "~%~a~%" octopus-arr)))
