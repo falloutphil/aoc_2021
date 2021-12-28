@@ -80,8 +80,8 @@ Possible we'll need an array of classes, but start with int
          (row-bounds (list (- (cadadr dims) -1 (caadr dims)) (caadr dims))))
     ;;(format #t "~%dims: ~a" dims)
     (let ((result (concatenate
-                   (map (lambda (col)
-                          (map (lambda (row) (list col row))
+                   (map (λ (col)
+                          (map (λ (row) (list col row))
                                (apply iota row-bounds)))
                         (apply iota col-bounds)))))
       ;;(format #t "~%2d result: ~a" result)
@@ -97,13 +97,13 @@ Possible we'll need an array of classes, but start with int
   (array-map! arr 1+ arr))
 
 (define (do-neighbours arr i j)
-  (format #t "~%flasher: (~a ~a)" i j)
+  ;;(format #t "~%flasher: (~a ~a)" i j)
   (if (>= (array-ref arr i j) 9) ;; is he a flasher?
       (let ((neighbours (filter
 			 (λ (n) (and (apply array-in-bounds? (cons arr n)) ;; legal coord?
 				     (> (apply array-ref (cons arr n)) 0))) ;; ignore if zero (already flashed)
 			 (neighbour-coords i j))))
-	(array-set! arr 0 i j) ;; reset the flasher
+	(array-set! arr -1 i j) ;; reset the flasher, -1 will set it to 0 when it is engerised
 	;;(format #t "~%neighbours: ~a" neighbours)
 	(for-each (λ (coord) ;; increment the neighbours
 		    ;;(format #t "~%coord: ~a" coord)
@@ -118,15 +118,14 @@ Possible we'll need an array of classes, but start with int
 (define (make-neighbour-flash! arr)
   (λ (i j)
     (let recurse ((coords (list (list i j)))) ;; LoL of coords
-      (format #t "~%arr: ~a" arr)
-      (format #t "~%coord list: ~a" coords)
-      (cond
-       ((null? coords) #t)
-       (else
-	(recurse (append (let ((i (caar coords))
-			       (j (cadar coords)))
-			   (do-neighbours arr i j))
-			 (cdr coords))))))))
+      ;;(format #t "~%arr: ~a" arr)
+      ;;(format #t "~%coord list: ~a" coords)
+      (if (null? coords)
+	  #t
+	  (recurse (append (let ((i (caar coords))
+				 (j (cadar coords)))
+			     (do-neighbours arr i j))
+			   (cdr coords)))))))
 
 #!
 0 1 2 3 4
@@ -138,10 +137,16 @@ Possible we'll need an array of classes, but start with int
 
 (define (main args)
   (let* ((octopus-arr (parse-input "test_input.txt"))
-	 (nf! (make-neighbour-flash! octopus-arr)))
-    (energise! octopus-arr)
-    (format #t "~%~a~%" octopus-arr)
-    (for-each (cut apply nf! <>) (make-2d-coords octopus-arr))
-    ;;(nf! 0 2)
-    ;; we still need to loop the engerising here!
-    (format #t "~%~a~%" octopus-arr)))
+	 (nf! (make-neighbour-flash! octopus-arr))
+	 (coords (make-2d-coords octopus-arr)))
+    (let loop ((n 100))
+      (format #t "~%n: ~a" n)
+      (unless (zero? n)
+	(begin
+          (energise! octopus-arr)
+	  (format #t "~%start: ~a~%" octopus-arr)
+	  (for-each (cut apply nf! <>) coords))
+	  ;;(nf! 0 2)
+	  ;; we still need to loop the engerising here!
+	  ;;(format #t "~%end: ~a~%" octopus-arr))
+	(loop (- n 1))))))
