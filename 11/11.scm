@@ -62,22 +62,53 @@ Possible we'll need an array of classes, but start with int
   #:use-module (ice-9 rdelim) ;; read-line
   #:use-module (srfi srfi-1) ;; concatenate, filter-map, compose, append-reverse
   #:use-module (srfi srfi-26) ;; cut
-  #:use-module (srfi srfi-42)) ;; list-ec
+  #:use-module (srfi srfi-42)) ;; list-ec/eager comprehensions
 
 (define (parse-input filename)
   "Read file of numbers into 2D array."
   (call-with-input-file filename
     (lambda (p)
-      ;; The list of values obtained by evaluating "line" once for each binding in the sequence defined by the qualifiers.
-      ;; reads from p until eof
-      ;; line is read through the sequence (read-line p)
-      ;; line is the variable produced from repeatedly calling (read-line p) until eof?
-      ;; https://practical-scheme.net/gauche/man/gauche-refe/Eager-comprehensions.html
       (list->array 2 (list-ec (:port line p read-line)
 			      (list-ec (:string ch line)
-				       ((compose string->number string) ch)))))))
+				       (- (char->integer ch) 48)))))))
 
+(define (neighbour-coords i j)
+  `((,(1- i) ,(1- j)) (,(1- i) ,j) (,(1- i) ,(1+ j))
+    (,i ,(1- j)) (,i ,(1+ j))
+    (,(1+ i) ,(1- j)) (,(1+ i) ,j) (,(1+ i) ,(1+ j))))
 
+(define (energise! arr)
+  (array-map! arr 1+ arr))
+
+(define (make-neighbour-flash! arr)
+  (λ (i j)
+    (if (>= (array-ref arr i j) 9)
+	(let ((neighbours (filter
+			   (λ (n) (apply array-in-bounds? (cons arr n)))
+			   (neighbour-coords i j))))
+	  (format #t "~%neighbours: ~a" neighbours)
+	  (for-each (λ (coord)
+		      (format #t "~%coord: ~a" coord)
+		      (apply array-set! `(,arr
+					  ,(1+ (apply array-ref (cons arr coord)))
+					  ,@coord)))
+		    neighbours))
+	(format #t "~%value: ~a" (array-ref arr i j)))))
+
+#!
+
+0 1 2 3 4
+1
+2   a b c
+3   d x e
+4   f g h
+
+!#
 
 (define (main args)
-  (format #t "~%hello~%"))
+  (let* ((octopus-arr (parse-input "test_input.txt"))
+	 (nf! (make-neighbour-flash! octopus-arr)))
+    (energise! octopus-arr)
+    (format #t "~%~a~%" octopus-arr)
+    (nf! 0 2)
+    (format #t "~%~a~%" octopus-arr)))
