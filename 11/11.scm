@@ -60,6 +60,7 @@ Possible we'll need an array of classes, but start with int
   #:export (main)
   #:use-module (oop goops) 
   #:use-module (ice-9 rdelim) ;; read-line
+  #:use-module (ice-9 match)
   #:use-module (srfi srfi-1) ;; concatenate
   #:use-module (srfi srfi-26) ;; cut
   #:use-module (srfi srfi-42)) ;; list-ec/eager comprehensions
@@ -74,8 +75,9 @@ Possible we'll need an array of classes, but start with int
 
 (define (make-2d-coords arr)
   "Create a set of coordinate pairs for the given array."
-  (let ((upper (array-dimensions arr)))
-    (list-ec (: i (car upper)) (: j (cadr upper)) (list i j))))
+  (let ((d (array-dimensions arr)))
+    (match d
+      ((max-i max-j) (list-ec (: i max-i) (: j max-j) (list i j))))))
 
 (define (neighbour-coords i j)
   `((,(1- i) ,(1- j)) (,(1- i) ,j) (,(1- i) ,(1+ j))
