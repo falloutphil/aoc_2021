@@ -60,7 +60,7 @@ Possible we'll need an array of classes, but start with int
   #:export (main)
   #:use-module (oop goops) 
   #:use-module (ice-9 rdelim) ;; read-line
-  #:use-module (srfi srfi-1) ;; concatenate, filter-map, compose, append-reverse
+  #:use-module (srfi srfi-1) ;; concatenate
   #:use-module (srfi srfi-26) ;; cut
   #:use-module (srfi srfi-42)) ;; list-ec/eager comprehensions
 
@@ -144,15 +144,18 @@ Possible we'll need an array of classes, but start with int
 (define (main args)
   (let* ((octopus-arr (parse-input "input.txt"))
 	 (nf! (make-neighbour-flash! octopus-arr))
-	 (coords (make-2d-coords octopus-arr)))
+	 (coords (make-2d-coords octopus-arr))
+	 (flash-count #f))
     (let loop ((n 100))
-      (format #t "~%n: ~a" n)
       (unless (zero? n)
 	(begin
+	  ;;(format #t "~%n: ~a" n)
+	  ;; check for flashes and neighbour flashes
+	  ;; the last coord (9 9) has the cumulative value of all
+	  ;; grids so far, which I should improve!
+	  (set! flash-count (last (map (cut apply nf! <>) coords)))
+	  ;; +1 to whole grid
           (energise! octopus-arr)
-	  (format #t "~%start: ~a~%" octopus-arr)
-	  (format #t "~%map: ~a~%" (car (map (cut apply nf! <>) coords)))
-	;;(nf! 0 2)
-	;; we still need to loop the engerising here!
-	;;(format #t "~%end: ~a~%" octopus-arr))
-	(loop (- n 1)))))))
+	  ;;(format #t "~%current grid: ~a~%" octopus-arr)
+	  (loop (1- n)))))
+    (format #t "~%Part 1: ~a~%" flash-count)))
