@@ -99,8 +99,9 @@ Possible we'll need an array of classes, but start with int
 (define (do-neighbours arr i j)
   (format #t "~%flasher: (~a ~a)" i j)
   (if (>= (array-ref arr i j) 9) ;; is he a flasher?
-      (let ((neighbours (filter ;; find legal neighbour coords
-			 (λ (n) (apply array-in-bounds? (cons arr n)))
+      (let ((neighbours (filter
+			 (λ (n) (and (apply array-in-bounds? (cons arr n)) ;; legal coord?
+				     (> (apply array-ref (cons arr n)) 0))) ;; ignore if zero (already flashed)
 			 (neighbour-coords i j))))
 	(array-set! arr 0 i j) ;; reset the flasher
 	;;(format #t "~%neighbours: ~a" neighbours)
