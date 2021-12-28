@@ -104,7 +104,7 @@ Possible we'll need an array of classes, but start with int
       (format #t "~%arr: ~a" arr)
       (format #t "~%coord list: ~a" coords)
       (cond
-       ((null? coords) '())
+       ((null? coords) 0)
        (else
 	(recurse (append (let ((i (caar coords))
 			       (j (cadar coords)))
@@ -124,5 +124,7 @@ Possible we'll need an array of classes, but start with int
 	 (nf! (make-neighbour-flash! octopus-arr)))
     (energise! octopus-arr)
     (format #t "~%~a~%" octopus-arr)
-    (nf! 0 2)
+    (array-index-map! octopus-arr nf!)
+    ;;(nf! 0 2)
+    ;; we still need to loop the engerising here!
     (format #t "~%~a~%" octopus-arr)))
