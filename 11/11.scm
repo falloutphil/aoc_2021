@@ -74,19 +74,8 @@ Possible we'll need an array of classes, but start with int
 
 (define (make-2d-coords arr)
   "Create a set of coordinate pairs for the given array."
-  (let* ((dims (array-shape arr))
-	 ;; get bounds in form iota likes
-         (col-bounds (list (- (cadar dims) -1 (caar dims)) (caar dims)))
-         (row-bounds (list (- (cadadr dims) -1 (caadr dims)) (caadr dims))))
-    ;;(format #t "~%dims: ~a" dims)
-    (let ((result (concatenate
-                   (map (λ (col)
-                          (map (λ (row) (list col row))
-                               (apply iota row-bounds)))
-                        (apply iota col-bounds)))))
-      ;;(format #t "~%2d result: ~a" result)
-      result)))
-
+  (let ((upper (array-dimensions arr)))
+    (list-ec (: i (car upper)) (: j (cadr upper)) (list i j))))
 
 (define (neighbour-coords i j)
   `((,(1- i) ,(1- j)) (,(1- i) ,j) (,(1- i) ,(1+ j))
