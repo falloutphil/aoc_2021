@@ -158,4 +158,19 @@ Possible we'll need an array of classes, but start with int
           (energise! octopus-arr)
 	  ;;(format #t "~%current grid: ~a~%" octopus-arr)
 	  (loop (1- n)))))
-    (format #t "~%Part 1: ~a~%" flash-count)))
+    (format #t "~%Part 1: ~a~%" flash-count))
+  
+  (let* ((octopus-arr (parse-input "input.txt"))
+	 (nf! (make-neighbour-flash! octopus-arr))
+	 (coords (make-2d-coords octopus-arr))
+	 (zero-arr (make-array 0 10 10)))
+    (let loop ((n 0))
+      (if (array-equal? octopus-arr zero-arr)
+	  (format #t "~%Part 2: ~a~%" n)
+	  (begin
+	    ;; (format #t "~%n: ~a~%" n)
+	    ;; check for flashes and neighbour flashes
+	    (for-each (cut apply nf! <>) coords)
+	    ;; +1 to whole grid
+            (energise! octopus-arr)
+	    (loop (1+ n)))))))
