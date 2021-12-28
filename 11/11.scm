@@ -96,36 +96,42 @@ Possible we'll need an array of classes, but start with int
 (define (energise! arr)
   (array-map! arr 1+ arr))
 
-(define (do-neighbours arr i j)
-  ;;(format #t "~%flasher: (~a ~a)" i j)
-  (if (>= (array-ref arr i j) 9) ;; is he a flasher?
-      (let ((neighbours (filter
-			 (λ (n) (and (apply array-in-bounds? (cons arr n)) ;; legal coord?
-				     (> (apply array-ref (cons arr n)) -1))) ;; ignore if zero (already flashed)
-			 (neighbour-coords i j))))
-	(array-set! arr -1 i j) ;; reset the flasher, -1 will set it to 0 when it is engerised
-	;;(format #t "~%neighbours: ~a" neighbours)
-	(for-each (λ (coord) ;; increment the neighbours
-		    ;;(format #t "~%coord: ~a" coord)
-		    (apply array-set! `(,arr
-					,(1+ (apply array-ref (cons arr coord)))
-					,@coord)))
-		  neighbours) 
-	(filter (λ (n) (>= (apply array-ref (cons arr n)) 9)) neighbours)) ;; return any new flashers
-      '())) ;; or nothing if he doesn't flash
+(define (make-do-neighbours)
+  (let ((counter 0))
+    (λ (arr i j)
+      (if (eq? arr #f)
+	  counter
+	  ;;(format #t "~%flasher: (~a ~a)" i j)
+	  (if (>= (array-ref arr i j) 9) ;; is he a flasher?
+	      (let ((neighbours (filter
+				 (λ (n) (and (apply array-in-bounds? (cons arr n)) ;; legal coord?
+					     (> (apply array-ref (cons arr n)) -1))) ;; ignore if zero (already flashed)
+				 (neighbour-coords i j))))
+		(set! counter (1+ counter)) ;; increase the flash count
+		(array-set! arr -1 i j) ;; reset the flasher, -1 will set it to 0 when it is engerised
+		;;(format #t "~%neighbours: ~a" neighbours)
+		(for-each (λ (coord) ;; increment the neighbours
+			    ;;(format #t "~%coord: ~a" coord)
+			    (apply array-set! `(,arr
+						,(1+ (apply array-ref (cons arr coord)))
+						,@coord)))
+			  neighbours)
+		(filter (λ (n) (>= (apply array-ref (cons arr n)) 9)) neighbours)) ;; return any new flashers
+	      '()))))) ;; or nothing if he doesn't flash
 
 
 (define (make-neighbour-flash! arr)
-  (λ (i j)
-    (let recurse ((coords (list (list i j)))) ;; LoL of coords
-      ;;(format #t "~%arr: ~a" arr)
-      ;;(format #t "~%coord list: ~a" coords)
-      (if (null? coords)
-	  #t
-	  (recurse (append (let ((i (caar coords))
-				 (j (cadar coords)))
-			     (do-neighbours arr i j))
-			   (cdr coords)))))))
+  (let ((do-neighbours (make-do-neighbours)))
+    (λ (i j)
+      (let recurse ((coords (list (list i j)))) ;; LoL of coords
+	;;(format #t "~%arr: ~a" arr)
+	;;(format #t "~%coord list: ~a" coords)
+	(if (null? coords)
+	    (do-neighbours #f #f #f) ;; return count
+	    (recurse (append (let ((i (caar coords))
+				   (j (cadar coords)))
+			       (do-neighbours arr i j))
+			     (cdr coords))))))))
 
 #!
 0 1 2 3 4
@@ -136,7 +142,7 @@ Possible we'll need an array of classes, but start with int
 !#
 
 (define (main args)
-  (let* ((octopus-arr (parse-input "test_input.txt"))
+  (let* ((octopus-arr (parse-input "input.txt"))
 	 (nf! (make-neighbour-flash! octopus-arr))
 	 (coords (make-2d-coords octopus-arr)))
     (let loop ((n 100))
@@ -145,8 +151,8 @@ Possible we'll need an array of classes, but start with int
 	(begin
           (energise! octopus-arr)
 	  (format #t "~%start: ~a~%" octopus-arr)
-	  (for-each (cut apply nf! <>) coords))
-	  ;;(nf! 0 2)
-	  ;; we still need to loop the engerising here!
-	  ;;(format #t "~%end: ~a~%" octopus-arr))
-	(loop (- n 1))))))
+	  (format #t "~%map: ~a~%" (car (map (cut apply nf! <>) coords)))
+	;;(nf! 0 2)
+	;; we still need to loop the engerising here!
+	;;(format #t "~%end: ~a~%" octopus-arr))
+	(loop (- n 1)))))))
