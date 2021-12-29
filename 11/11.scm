@@ -80,9 +80,10 @@ Possible we'll need an array of classes, but start with int
       ((max-i max-j) (list-ec (: i max-i) (: j max-j) (list i j))))))
 
 (define (neighbour-coords i j)
-  `((,(1- i) ,(1- j)) (,(1- i) ,j) (,(1- i) ,(1+ j))
-    (,i ,(1- j)) (,i ,(1+ j))
-    (,(1+ i) ,(1- j)) (,(1+ i) ,j) (,(1+ i) ,(1+ j))))
+  (list-ec (: i* (1- i) (+ i 2)) ;; i axis range
+	   (: j* (1- j) (+ j 2)) ;; j axis range
+	   (not (equal? (list i* j*) (list i j))) ;; remove (i j) itself
+	   (list i* j*)))
 
 (define (energise! arr)
   (array-map! arr 1+ arr))
