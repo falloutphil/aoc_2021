@@ -5,12 +5,10 @@ exec guile -e '(@ (day12) main)' -s "$0" "$@"
 
 (define-module (day12)
   #:export (main)
-  #:use-module (oop goops) 
   #:use-module (ice-9 rdelim) ;; read-line
   #:use-module (ice-9 match)
   #:use-module (ice-9 hash-table)
   #:use-module (srfi srfi-1) ;; concatenate
-  #:use-module (srfi srfi-26) ;; cut
   #:use-module (srfi srfi-42)) ;; list-ec/eager comprehensions
 
 #!
@@ -58,12 +56,12 @@ if it is end return count += 1
 	    (match node-pair
 	      ((n1 n2) (and (not (or (string=? n2 "start")
 				     (string=? n1 "end")))))))
-  (concatenate
-   (call-with-input-file filename
-    (λ (p)
-      (list-ec (:port line p read-line)
-	       (let ((nodes (string-split line #\-)))
-		 (list nodes (reverse nodes)))))))))
+	  (concatenate
+	   (call-with-input-file filename
+	     (λ (p)
+	       (list-ec (:port line p read-line)
+			(let ((nodes (string-split line #\-)))
+			  (list nodes (reverse nodes)))))))))
 
 (define (display-hash hm)
   (hash-for-each
@@ -76,12 +74,29 @@ if it is end return count += 1
      (λ (node-pair)
        (match node-pair
 	 ((n1 n2) (hash-set! cd n1
-			    (cons n2 (hash-ref cd n1 '()))))))
+			     (cons n2 (hash-ref cd n1 '()))))))
      lst)
     cd))
-       
+
+(define (make-find-paths)
+  (let ((count 0))
+    (λ (cd)
+      (let loop ((paths '("start")))
+	(for-each ;; for each next node from current
+	 (λ (node)
+	   (if (or (string-every char-upper-case? node) ;; large cave
+		   (not (member node paths))) ;; small cave once
+	       (if (string=? node "end") 
+		     (set! count (1+ count)) ;; found another route
+		   (loop (cons node paths))))) ;; or add node to visited paths
+	 (hash-ref cd (car paths))) ;; next moves from head of path
+	count))))
+
+
 (define (main args)
-  (let* ((input-list (file->list "test_input.txt"))
-	 (dict (build-connection-dict input-list)))
-  (format #t "~%input: ~a~%" (file->list "test_input.txt"))
-  (format #t "~%dict: ~a~%" (display-hash dict))))
+  (let* ((input-list (file->list "input.txt"))
+	 (dict (build-connection-dict input-list))
+	 (find-paths (make-find-paths)))
+    ;;(format #t "~%input: ~a~%" (file->list "test_input.txt"))
+    ;;(format #t "~%dict: ~a~%" (display-hash dict))
+    (format #t "~%Part 1: ~a~%" (find-paths dict))))
