@@ -37,6 +37,16 @@ for DX, he
 # can't go from end to something else
 del connect[end]
 
+THEN
+
+new list "path" init with element "start"
+
+then loop
+look up last path entry in dictionary
+if it is upper, or not already in the path
+   if it is end return count += 1
+   (recurse data, path ++ point)
+
 !#
 
 (define (main args)
