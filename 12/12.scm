@@ -26,15 +26,12 @@ Zip them together
 ((he DX) (DX he))
 
 for he, DX
-if DX != 'start'
+if DX != 'start' or he != 'end'
 connect[he].append(DX)
 
 for DX, he
-if DX != 'start'
+if he != 'start' or DX != 'end' 
 connect[DX].append(he)
-
-# can't go from end to something else
-del connect[end]
 
 THEN
 
@@ -64,11 +61,13 @@ if it is end return count += 1
 			  (list nodes (reverse nodes)))))))))
 
 (define (display-hash hm)
+  "Debug function to look at dictionary."
   (hash-for-each
    (λ (k v) (format #t "~%(~a, ~a)" k v))
    hm))
 
 (define (build-connection-dict lst)
+  "Create a dictionary of (nodes, list of next nodes)."
   (let ((cd (make-hash-table)))
     (for-each
      (λ (node-pair)
@@ -79,18 +78,21 @@ if it is end return count += 1
     cd))
 
 (define (make-find-paths)
+  "Return fn what will recurse through each and 
+   every path from start to end, and count them."
   (let ((count 0))
     (λ (cd)
-      (let loop ((paths '("start")))
+      (let recurse ((paths '("start")))
 	(for-each ;; for each next node from current
 	 (λ (node)
-	   (if (or (string-every char-upper-case? node) ;; large cave
-		   (not (member node paths))) ;; small cave once
+	   ;; check the next node is a valid move
+	   (if (or (string-every char-upper-case? node) ;; large cave shortcircuit
+		   (not (member node paths))) ;; or small cave if not already in the path
 	       (if (string=? node "end") 
-		     (set! count (1+ count)) ;; found another route
-		   (loop (cons node paths))))) ;; or add node to visited paths
-	 (hash-ref cd (car paths))) ;; next moves from head of path
-	count))))
+		   (set! count (1+ count)) ;; count the newly completed route
+		   (recurse (cons node paths))))) ;; or add node to visited paths and recurse
+	 (hash-ref cd (car paths))) ;; next moves from head of path - these will have been added by the recurse
+	count)))) ;; return the final count
 
 
 (define (main args)
