@@ -43,11 +43,18 @@ new list "path" init with element "start"
 
 then loop
 look up last path entry in dictionary
-if it is upper, or not already in the path
+if it is upper (big cave), or not already in the path (small cave)
    if it is end return count += 1
    (recurse data, path ++ point)
 
 !#
 
+(define (file->list filename)
+    (call-with-input-file filename
+      (λ (p)
+	(list-ec (:port line p read-line)
+		 (string-split line #\-)))))
+
+
 (define (main args)
-  (format #t "~%hello~%"))
+  (format #t "~%input: ~a~%" (file->list "test_input.txt")))
