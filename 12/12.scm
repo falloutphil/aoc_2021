@@ -49,10 +49,8 @@ if it is end return count += 1
   "Read file, split on '-' and add list and reverse list to list.
    Then flatten reversed groups and filter out lists that
    end with start, or start with end."
-  (filter (λ (node-pair)
-	    (match node-pair
-	      ((n1 n2) (and (not (or (string=? n2 "start")
-				     (string=? n1 "end")))))))
+  (filter (match-lambda ((n1 n2) (and (not (or (string=? n2 "start")
+					       (string=? n1 "end"))))))
 	  (concatenate
 	   (call-with-input-file filename
 	     (λ (p)
@@ -70,10 +68,9 @@ if it is end return count += 1
   "Create a dictionary of (nodes, list of next nodes)."
   (let ((cd (make-hash-table)))
     (for-each
-     (λ (node-pair)
-       (match node-pair
-	 ((n1 n2) (hash-set! cd n1
-			     (cons n2 (hash-ref cd n1 '()))))))
+     (match-lambda ((n1 n2)
+		    (hash-set! cd n1
+			       (cons n2 (hash-ref cd n1 '())))))
      lst)
     cd))
 
