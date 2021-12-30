@@ -77,28 +77,43 @@ if it is end return count += 1
      lst)
     cd))
 
-(define (make-find-paths)
+(define (make-find-paths part2)
   "Return fn what will recurse through each and 
    every path from start to end, and count them."
   (let ((count 0))
     (λ (cd)
-      (let recurse ((paths '("start")))
-	(for-each ;; for each next node from current
-	 (λ (node)
-	   ;; check the next node is a valid move
-	   (if (or (string-every char-upper-case? node) ;; large cave shortcircuit
-		   (not (member node paths))) ;; or small cave if not already in the path
-	       (if (string=? node "end") 
-		   (set! count (1+ count)) ;; count the newly completed route
-		   (recurse (cons node paths))))) ;; or add node to visited paths and recurse
-	 (hash-ref cd (car paths))) ;; next moves from head of path - these will have been added by the recurse
-	count)))) ;; return the final count
+      (let recurse ((paths '("start"))
+		    (part2 part2)) ;; each *new* recursion can visit a small cave twice
+	(if part2
+	    (begin ;; part 2 - will reuse part 1, it could be more pretty!
+	      (for-each ;; for each next node from current
+	       (λ (node)
+		 (if (string=? node "end") 
+		     (set! count (1+ count)) ;; count the newly completed route
+		       (if (and (string-every char-lower-case? node)
+				  (member node paths))
+			   (recurse (cons node paths) #f) ;; we have been the small cave once, revert to part 1 logic
+			   (recurse (cons node paths) #t)))) ;; or add node to visited paths and recurse
+	       (hash-ref cd (car paths)))) ;; next moves from head of path - these will have been added by the recurse
+	    (begin ;; part 1
+	      (for-each ;; for each next node from current
+	       (λ (node)
+		 ;; check the next node is a valid move
+		 (if (or (string-every char-upper-case? node) ;; large cave shortcircuit
+			 (not (member node paths))) ;; or small cave if not already in the path
+		     (if (string=? node "end") 
+			 (set! count (1+ count)) ;; count the newly completed route
+			 (recurse (cons node paths) #f)))) ;; or add node to visited paths and recurse
+	       (hash-ref cd (car paths))))) ;; next moves from head of path - these will have been added by the recurse
+	    count)))) ;; return the final count
 
 
 (define (main args)
   (let* ((input-list (file->list "input.txt"))
 	 (dict (build-connection-dict input-list))
-	 (find-paths (make-find-paths)))
+	 (find-paths-1 (make-find-paths #f))
+	 (find-paths-2 (make-find-paths #t)))
     ;;(format #t "~%input: ~a~%" (file->list "test_input.txt"))
     ;;(format #t "~%dict: ~a~%" (display-hash dict))
-    (format #t "~%Part 1: ~a~%" (find-paths dict))))
+    (format #t "~%Part 1: ~a~%" (find-paths-1 dict))
+    (format #t "~%Part 2: ~a~%" (find-paths-2 dict))))
