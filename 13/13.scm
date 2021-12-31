@@ -25,6 +25,14 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
     #'((coords ...) (folds ...))])
   )
 
+;; https://stackoverflow.com/a/70545115/2904770
+(define (handle-fold line var)
+  "Can be used as a cond test which returns a list
+   of folds as truth (meaning no expression is needed)."
+  (let ((str (string-append "fold along " (symbol->string var) "=")))
+    (and (string= line str 1 13 1 13)
+         (list var (last (string-split line #\=))))))
+
 (define (file->list filename)
   "Read input and split into list of 
    coordinates and folds."
@@ -35,10 +43,8 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
 			   ((string-any (cut eqv? <> #\,) line)
 			    (string-split line #\,))
 			   ((string-null? line) #f) ;; blank line
-			   ((string= line "fold along x=" 1 13 1 13)
-			    `(x ,(last (string-split line #\=))))
-			   ((string= line "fold along y=" 1 13 1 13)
-			    `(y ,(last (string-split line #\=))))
+			   ((handle-fold line 'x))
+			   ((handle-fold line 'y))
 			   (else (error "bad input!"))))))))
     (parse-input lst)))
       
