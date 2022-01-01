@@ -31,7 +31,10 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
    of folds as truth (meaning no expression is needed)."
   (let ((str (string-append "fold along " (symbol->string var) "=")))
     (and (string= line str 1 13 1 13)
-         (list var (last (string-split line #\=))))))
+         (list var ((compose string->number
+			     last
+			     (cut string-split <> #\=))
+		    line)))))
 
 (define (file->list filename)
   "Read input and split into list of 
@@ -41,7 +44,7 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
 		 (list-ec (:port line p read-line)
 			  (cond
 			   ((string-any (cut eqv? <> #\,) line)
-			    (string-split line #\,))
+			    (map string->number (string-split line #\,)))
 			   ((string-null? line) #f) ;; blank line
 			   ((handle-fold line 'x))
 			   ((handle-fold line 'y))
@@ -49,8 +52,12 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
     (parse-input lst)))
       
 
+(define (dimensions coords)
+  (match-let ((((x y) ...) (coords)))
+    (format #t "~%x: ~a" x)))
 
 (define (main args)
   (match-let (((coords folds) (file->list "input.txt")))
     (format #t "~%coords: ~a~%" coords)
     (format #t "~%folds: ~a~%" folds)))
+    ;;(format #t "~%x: ~a~%" (dimensions coords))))
