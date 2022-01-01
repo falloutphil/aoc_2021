@@ -53,7 +53,7 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
       
 
 (define (dimensions coords)
-  (match-let (((list (x y) ...) coords)) ;; misses first coord!
+  (match-let ([((x y) ...) coords])
     (format #t "~%x: ~a" x)
     (format #t "~%y: ~a" y)
     `(,(apply max x) ,(apply max y))))
