@@ -53,11 +53,13 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
       
 
 (define (dimensions coords)
-  (match-let ((((x y) ...) (coords)))
-    (format #t "~%x: ~a" x)))
+  (match-let (((list (x y) ...) coords)) ;; misses first coord!
+    (format #t "~%x: ~a" x)
+    (format #t "~%y: ~a" y)
+    `(,(apply max x) ,(apply max y))))
 
 (define (main args)
-  (match-let (((coords folds) (file->list "input.txt")))
+  (match-let (((coords folds) (file->list "test_input.txt")))
     (format #t "~%coords: ~a~%" coords)
-    (format #t "~%folds: ~a~%" folds)))
-    ;;(format #t "~%x: ~a~%" (dimensions coords))))
+    (format #t "~%folds: ~a~%" folds)
+    (format #t "~%dims: ~a~%" (dimensions coords))))
