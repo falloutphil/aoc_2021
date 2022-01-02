@@ -112,9 +112,10 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
   (match-let* ([(coords folds) (file->list "input.txt")]
 	       [(max-col max-row) (dimensions coords)])
     (let ([paper (make-paper-array max-col max-row)])
-      (add-points-to-paper paper coords) ;; #\x2588
-      (format #t "~%Part 2:~%~{~{~:[ ~;X~]~}~%~}" (array->list (fold fold-paper-arrays paper folds))))))
-
-
-
-
+      (add-points-to-paper paper coords)
+      ;; 9608 is unicode "full block" in decimal.
+      ;; ~Nc renders char code N.
+      ;; ~:[F~;T~] treats input as bool and renders F for false, otherwise T.
+      ;; ~{X~} iterates over the list input, it's nested with a newline.
+      (format #t "~%Part 2:~%~{~{~:[ ~;~9608c~]~}~%~}~%"
+	      (array->list (fold fold-paper-arrays paper folds))))))
