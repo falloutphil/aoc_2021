@@ -111,9 +111,6 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
   ;; Part 2
   (match-let* ([(coords folds) (file->list "input.txt")]
 	       [(max-col max-row) (dimensions coords)])
-    ;;(format #t "~%coords: ~a~%" coords)
-    ;;(format #t "~%folds: ~a~%" folds)
-    ;;(format #t "~%dims - col: ~a row: ~a~%" max-col max-row)
     (let ([paper (make-paper-array max-col max-row)])
       (add-points-to-paper paper coords)
       (format #t "~%Part 2:~%")
