@@ -13,6 +13,7 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
   #:use-module (ice-9 match)
   #:use-module (ice-9 hash-table)
   #:use-module (srfi srfi-1) ;; last
+  #:use-module (srfi srfi-11) ;; let-values
   #:use-module (srfi srfi-26) ;; cut
   #:use-module (srfi srfi-42)) ;; list-ec/eager comprehensions
 
@@ -53,13 +54,15 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
       
 
 (define (dimensions coords)
-  (match-let ([((x y) ...) coords])
-    (format #t "~%x: ~a" x)
-    (format #t "~%y: ~a" y)
+  (let-values ([(x y) (unzip2 coords)])
     `(,(apply max x) ,(apply max y))))
 
 (define (main args)
-  (match-let (((coords folds) (file->list "test_input.txt")))
+  (match-let* ([(coords folds) (file->list "test_input.txt")]
+	       [(max-x max-y) (dimensions coords)])
     (format #t "~%coords: ~a~%" coords)
     (format #t "~%folds: ~a~%" folds)
-    (format #t "~%dims: ~a~%" (dimensions coords))))
+    (format #t "~%dims - x: ~a y: ~a~%" max-x max-y)
+    (let ([paper (make-typed-array 'b #f max-y max-x)])
+      (format #t "~%paper: ~a~%" paper))))
+
