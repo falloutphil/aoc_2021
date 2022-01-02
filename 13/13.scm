@@ -53,7 +53,7 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
 			   ((handle-fold line 'y))
 			   (else (error "bad input!"))))))))
     (parse-input lst)))
-      
+
 
 (define (dimensions coords)
   "Get dimensions of a set of coords.
@@ -71,7 +71,24 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
   (for-each (λ (c)
 	      (apply array-set! (append `(,paper #t) c)))
 	    coords))
-  
+
+(define (fold-paper-arrays paper fold)
+  (match-let* ([(axis coord) fold]
+	       [(y-bounds x-bounds) (array-shape paper)]
+	       [(y-low y-high) y-bounds]
+	       [(x-low x-high) x-bounds])
+    ;;(apply array-map! (append (list paper (λ (e1 e2) (or e1 e2)))
+			      (case axis
+				[(x) (list (make-shared-array paper list y-bounds (list x-low (1- coord)))
+					   (make-shared-array paper list y-bounds (list (1+ coord) x-high)))]
+				[(y) (list (array-shape (make-shared-array paper
+									   list
+									   (list y-low (1- coord)) x-bounds))
+					   (array-shape (make-shared-array paper
+									   list ;;(λ (y x) (list (+ y coord 1) x))
+									   (list (1+ coord) y-high) x-bounds)))]
+				[else error "bad axis!"])));;))
+
 (define (main args)
   (match-let* ([(coords folds) (file->list "test_input.txt")]
 	       [(max-col max-row) (dimensions coords)])
@@ -80,5 +97,6 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
     (format #t "~%dims - col: ~a row: ~a~%" max-col max-row)
     (let ([paper (make-paper-array max-col max-row)])
       (add-points-to-paper paper coords)
-      (format #t "~%paper: ~a~%" paper))))
+      (format #t "~%paper: ~a~%" paper)
+      (format #t "~%result: ~a~%" (fold-paper-arrays paper (car folds))))))
 
