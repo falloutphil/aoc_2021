@@ -11,7 +11,6 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
   #:use-module (syntax parse)
   #:use-module (ice-9 rdelim) ;; read-line
   #:use-module (ice-9 match)
-  #:use-module (ice-9 hash-table)
   #:use-module (srfi srfi-1) ;; last
   #:use-module (srfi srfi-11) ;; let-values
   #:use-module (srfi srfi-26) ;; cut
@@ -59,7 +58,7 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
   "Get dimensions of a set of coords.
    Assumes points are in (col row) format."
   (let-values ([(col row) (unzip2 coords)])
-    `(,(apply max col) ,(apply max row))))
+    (list (apply max col) (apply max row))))
 
 
 (define (make-paper-array max-col max-row)
@@ -97,13 +96,15 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
     side1))
 
 (define (main args)
-  (match-let* ([(coords folds) (file->list "test_input.txt")]
+  (match-let* ([(coords folds) (file->list "part1_input.txt")]
 	       [(max-col max-row) (dimensions coords)])
-    (format #t "~%coords: ~a~%" coords)
-    (format #t "~%folds: ~a~%" folds)
-    (format #t "~%dims - col: ~a row: ~a~%" max-col max-row)
+    ;;(format #t "~%coords: ~a~%" coords)
+    ;;(format #t "~%folds: ~a~%" folds)
+    ;;(format #t "~%dims - col: ~a row: ~a~%" max-col max-row)
     (let ([paper (make-paper-array max-col max-row)])
       (add-points-to-paper paper coords)
-      (format #t "~%paper: ~a~%" paper)
-      (format #t "~%result: ~a~%" (fold fold-paper-arrays paper folds)))))
+      (format #t "~%Part 1: ~a~%" (count identity
+					 (concatenate
+					  (array->list
+					   (fold fold-paper-arrays paper folds))))))))
 
