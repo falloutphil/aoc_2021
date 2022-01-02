@@ -84,7 +84,7 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
 							      list
 							      (list y-low (1- coord)) x-bounds)
 					   (make-shared-array paper
-							      (λ (y x) (list (+ y coord 1) x))
+							      (λ (y x) (list (- (* 2 coord) y) x))
 							      (list y-low (1- coord)) x-bounds))]
 				[else error "bad axis!"])])
     (apply array-map! (append (list side1 (λ (e1 e2) (or e1 e2)) side1 side2)))))
