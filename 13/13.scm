@@ -71,25 +71,32 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
 	      (apply array-set! (append `(,paper #t) c)))
 	    coords))
 
+
+(define (create-folded-arrays paper transform y-bound x-bound)
+  "Create 2 shared arrays, either side of the fold,
+   and map their coordinate systems via transform."
+  (list (make-shared-array paper
+			   list ;; near-side always maintains original coord system
+			   y-bound x-bound)
+	(make-shared-array paper
+			   transform ;; far-side counts back from far edge
+			   y-bound x-bound)))
+
+
 (define (fold-paper-arrays fold-pair paper)
   "Applies a single fold along either axis
    and update the original array with the
    points folded onto it."
   (match-let* ([(axis coord) fold-pair]
-	       [(y-bounds x-bounds) (array-shape paper)]
+	       [(y-bound x-bound) (array-dimensions paper)]
+	       [map-edge (cut - (* 2 coord) <>)] ;; count back from twice the distance from the fold
 	       [(side1 side2) (case axis
-				[(x) (list (make-shared-array paper
-							      list ;; near-side always maintains original coord system
-							      y-bounds `(0 ,(1- coord)))
-					   (make-shared-array paper
-							      (λ (y x) (list y (- (* 2 coord) x))) ;; far-side counts back from far edge
-							      y-bounds `(0 ,(1- coord))))]
-				[(y) (list (make-shared-array paper
-							      list ;; near-side always maintains original coord system
-							      `(0 ,(1- coord)) x-bounds)
-					   (make-shared-array paper
-							      (λ (y x) (list (- (* 2 coord) y) x)) ;; far-side counts back from far edge
-							      `(0 ,(1- coord)) x-bounds))]
+				[(x) (create-folded-arrays paper
+							   (λ (y x) (list y (map-edge x)))
+							   y-bound coord)]
+				[(y) (create-folded-arrays paper
+							   (λ (y x) (list (map-edge y) x))
+							   coord x-bound)]
 				[else error "bad axis!"])])
     (array-map! side1
 		(λ (e1 e2) (or e1 e2))
