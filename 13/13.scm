@@ -78,8 +78,12 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
 	       [(y-low y-high) y-bounds]
 	       [(x-low x-high) x-bounds]
 	       [(side1 side2) (case axis
-				[(x) (list (make-shared-array paper list y-bounds (list x-low (1- coord)))
-					   (make-shared-array paper list y-bounds (list (1+ coord) x-high)))]
+				[(x) (list (make-shared-array paper
+							      list
+							      y-bounds (list x-low (1- coord)))
+					   (make-shared-array paper
+							      (λ (y x) (list y (- (* 2 coord) x)))
+							      y-bounds (list x-low (1- coord))))]
 				[(y) (list (make-shared-array paper
 							      list
 							      (list y-low (1- coord)) x-bounds)
@@ -87,7 +91,10 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
 							      (λ (y x) (list (- (* 2 coord) y) x))
 							      (list y-low (1- coord)) x-bounds))]
 				[else error "bad axis!"])])
-    (apply array-map! (append (list side1 (λ (e1 e2) (or e1 e2)) side1 side2)))))
+    (array-map! side1
+		(λ (e1 e2) (or e1 e2))
+		side1 side2)
+    side1))
 
 (define (main args)
   (match-let* ([(coords folds) (file->list "test_input.txt")]
@@ -98,6 +105,5 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
     (let ([paper (make-paper-array max-col max-row)])
       (add-points-to-paper paper coords)
       (format #t "~%paper: ~a~%" paper)
-      (fold-paper-arrays paper (car folds))
-      (format #t "~%result: ~a~%" paper))))
+      (format #t "~%result: ~a~%" (fold-paper-arrays (fold-paper-arrays paper (car folds)) (cadr folds))))))
 
