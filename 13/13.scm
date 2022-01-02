@@ -115,6 +115,7 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
       (add-points-to-paper paper coords)
       (format #t "~%Part 2:~%")
       (format #t "~a" (map (cut map (cut if <> #\x2588 #\space) <>)
-		       (array->list (fold fold-paper-arrays paper folds)))))))
+			   (array->list
+			    (fold fold-paper-arrays paper folds)))))))
 
 
