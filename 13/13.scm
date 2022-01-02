@@ -22,9 +22,10 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
 ;; into a list of coords and a list of folds.
 (define parse-input
   (syntax-parser
-   [(coords ...+ #f folds ...+)
-    #'((coords ...) (folds ...))])
+   [((x y) ...+ #f folds ...+)     ;; input is (row col)
+    #'(((y x) ...) (folds ...))])  ;; arrays are (col row)
   )
+
 
 ;; https://stackoverflow.com/a/70545115/2904770
 (define (handle-fold line var)
@@ -36,6 +37,7 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
 			     last
 			     (cut string-split <> #\=))
 		    line)))))
+
 
 (define (file->list filename)
   "Read input and split into list of 
@@ -54,15 +56,29 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
       
 
 (define (dimensions coords)
-  (let-values ([(x y) (unzip2 coords)])
-    `(,(apply max x) ,(apply max y))))
+  "Get dimensions of a set of coords.
+   Assumes points are in (col row) format."
+  (let-values ([(col row) (unzip2 coords)])
+    `(,(apply max col) ,(apply max row))))
 
+
+(define (make-paper-array max-col max-row)
+  "Created 2D bit-array to represent our initial flat piece of paper."
+  (make-typed-array 'b #f `(0 ,max-col) `(0 ,max-row)))
+
+(define (add-points-to-paper paper coords)
+  "Add points to the initial paper."
+  (for-each (λ (c)
+	      (apply array-set! (append `(,paper #t) c)))
+	    coords))
+  
 (define (main args)
   (match-let* ([(coords folds) (file->list "test_input.txt")]
-	       [(max-x max-y) (dimensions coords)])
+	       [(max-col max-row) (dimensions coords)])
     (format #t "~%coords: ~a~%" coords)
     (format #t "~%folds: ~a~%" folds)
-    (format #t "~%dims - x: ~a y: ~a~%" max-x max-y)
-    (let ([paper (make-typed-array 'b #f max-y max-x)])
+    (format #t "~%dims - col: ~a row: ~a~%" max-col max-row)
+    (let ([paper (make-paper-array max-col max-row)])
+      (add-points-to-paper paper coords)
       (format #t "~%paper: ~a~%" paper))))
 
