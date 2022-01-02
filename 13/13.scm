@@ -4,7 +4,7 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
 !#
 
 ;; https://gitlab.com/guile-syntax-parse/guile-syntax-parse
-(add-to-load-path  "/home/phil/installs/guile-syntax-parse")
+(add-to-load-path "/home/phil/installs/guile-syntax-parse")
 
 (define-module (day13)
   #:export (main)
@@ -72,27 +72,31 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
 	    coords))
 
 (define (fold-paper-arrays fold-pair paper)
+  "Applies a single fold along either axis
+   and update the original array with the
+   points folded onto it."
   (match-let* ([(axis coord) fold-pair]
 	       [(y-bounds x-bounds) (array-shape paper)]
-	       [(y-low y-high) y-bounds]
-	       [(x-low x-high) x-bounds]
 	       [(side1 side2) (case axis
 				[(x) (list (make-shared-array paper
-							      list
-							      y-bounds (list x-low (1- coord)))
+							      list ;; near-side always maintains original coord system
+							      y-bounds `(0 ,(1- coord)))
 					   (make-shared-array paper
-							      (λ (y x) (list y (- (* 2 coord) x)))
-							      y-bounds (list x-low (1- coord))))]
+							      (λ (y x) (list y (- (* 2 coord) x))) ;; far-side counts back from far edge
+							      y-bounds `(0 ,(1- coord))))]
 				[(y) (list (make-shared-array paper
-							      list
-							      (list y-low (1- coord)) x-bounds)
+							      list ;; near-side always maintains original coord system
+							      `(0 ,(1- coord)) x-bounds)
 					   (make-shared-array paper
-							      (λ (y x) (list (- (* 2 coord) y) x))
-							      (list y-low (1- coord)) x-bounds))]
+							      (λ (y x) (list (- (* 2 coord) y) x)) ;; far-side counts back from far edge
+							      `(0 ,(1- coord)) x-bounds))]
 				[else error "bad axis!"])])
     (array-map! side1
 		(λ (e1 e2) (or e1 e2))
 		side1 side2)
+    ;; return a ref to the original, updated, folded portion as a shared array.
+    ;; note no new arrays are ever created or destroyed for efficiency.
+    ;; we just use an ever-decreasing portion of the original array.
     side1))
 
 (define (main args)
