@@ -72,8 +72,8 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
 	      (apply array-set! (append `(,paper #t) c)))
 	    coords))
 
-(define (fold-paper-arrays paper fold)
-  (match-let* ([(axis coord) fold]
+(define (fold-paper-arrays fold-pair paper)
+  (match-let* ([(axis coord) fold-pair]
 	       [(y-bounds x-bounds) (array-shape paper)]
 	       [(y-low y-high) y-bounds]
 	       [(x-low x-high) x-bounds]
@@ -105,5 +105,5 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
     (let ([paper (make-paper-array max-col max-row)])
       (add-points-to-paper paper coords)
       (format #t "~%paper: ~a~%" paper)
-      (format #t "~%result: ~a~%" (fold-paper-arrays (fold-paper-arrays paper (car folds)) (cadr folds))))))
+      (format #t "~%result: ~a~%" (fold fold-paper-arrays paper folds)))))
 
