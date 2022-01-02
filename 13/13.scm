@@ -96,6 +96,7 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
     side1))
 
 (define (main args)
+  ;; Part 1
   (match-let* ([(coords folds) (file->list "part1_input.txt")]
 	       [(max-col max-row) (dimensions coords)])
     ;;(format #t "~%coords: ~a~%" coords)
@@ -106,5 +107,17 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
       (format #t "~%Part 1: ~a~%" (count identity
 					 (concatenate
 					  (array->list
-					   (fold fold-paper-arrays paper folds))))))))
+					   (fold fold-paper-arrays paper folds)))))))
+  ;; Part 2
+  (match-let* ([(coords folds) (file->list "input.txt")]
+	       [(max-col max-row) (dimensions coords)])
+    ;;(format #t "~%coords: ~a~%" coords)
+    ;;(format #t "~%folds: ~a~%" folds)
+    ;;(format #t "~%dims - col: ~a row: ~a~%" max-col max-row)
+    (let ([paper (make-paper-array max-col max-row)])
+      (add-points-to-paper paper coords)
+      (format #t "~%Part 2:~%")
+      (format #t "~a" (map (cut map (cut if <> #\x2588 #\space) <>)
+		       (array->list (fold fold-paper-arrays paper folds)))))))
+
 
