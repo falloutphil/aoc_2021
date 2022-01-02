@@ -22,8 +22,8 @@ exec guile -e '(@ (day13) main)' -s "$0" "$@"
 (define parse-input
   (syntax-parser
    [((x y) ...+ #f folds ...+)     ;; input is (row col)
-    #'(((y x) ...) (folds ...))])  ;; arrays are (col row)
-  )
+    #'(((y x) ...) (folds ...))])) ;; arrays are (col row)
+
 
 
 ;; https://stackoverflow.com/a/70545115/2904770
