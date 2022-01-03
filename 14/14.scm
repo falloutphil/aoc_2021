@@ -48,14 +48,14 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
     ;;(format #t "~%Template: ~a" template)
     ;;(format #t "~%Rules: ~a" rules)
     (let* ([result    
-	   (let loop ([n 10]
-		      [t template])
-	     (if (zero? n)
-		 t ;; return latest template OR
-		 ;; loop not in tail position.
-		 ;; updated template is sent back into insert
-		 ;; function 10 times.
-		 (loop (1- n) (concatenate (insert t rules)))))]
+	    (let loop ([n 10]
+		       [t template])
+	      (if (zero? n)
+		  t ;; return latest template OR
+		  ;; loop not in tail position.
+		  ;; updated template is sent back into insert
+		  ;; function 10 times.
+		  (loop (1- n) (concatenate (insert t rules)))))]
 	   [counter (make-hash-table)]
 	   [max-kv 0] 
 	   [min-kv 999999]) ;; arbitrarily large
@@ -66,6 +66,15 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
 		     (1+ (hashv-ref counter e 0))))
        result)
       ;; Find max and min
+      (format #t "~%Part 1: ~a~%" (apply - (hash-fold
+					    (λ (_ v prior)
+					       (match-let ([(max min) prior])
+						 (cond
+						  [(> v max) (list v min)]
+						  [(< v min) (list max v)]
+						  [else prior])))
+					     '(0 99999) counter)))
+      
       (hash-for-each (λ (_ v)
 		       (cond
 			[(> v max-kv) (set! max-kv v)]
