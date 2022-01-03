@@ -57,19 +57,19 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
 		 ;; function 10 times.
 		 (loop (1- n) (concatenate (insert t rules)))))]
 	   [counter (make-hash-table)]
-	   [max-kv '(#f . 0)] 
-	   [min-kv '(#f . 999999)]) ;; arbitrarily large
+	   [max-kv 0] 
+	   [min-kv 999999]) ;; arbitrarily large
       ;; Create a dictionary of counts
       (for-each
        (λ (e)
 	 (hashv-set! counter e
 		     (1+ (hashv-ref counter e 0))))
        result)
-      ;; Find max and min - this is over-elaborate - only need to retain value
-      (hash-for-each (λ (k v)
+      ;; Find max and min
+      (hash-for-each (λ (_ v)
 		       (cond
-			[(> v (cdr max-kv)) (set! max-kv (cons k v))]
-			[(< v (cdr min-kv)) (set! min-kv (cons k v))]))
+			[(> v max-kv) (set! max-kv v)]
+			[(< v min-kv) (set! min-kv v)]))
 		     counter)
-      (format #t "~%Part 1: ~a~%" (- (cdr max-kv) (cdr min-kv))))))
+      (format #t "~%Part 1: ~a~%" (- max-kv min-kv)))))
 
