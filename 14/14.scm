@@ -63,7 +63,7 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
 	 (hashv-set! counter e
 		     (1+ (hashv-ref counter e 0))))
        result)
-      ;; Find max and min
+      ;; Find max and min dict values and subtract
       (format #t "~%Part 1: ~a~%" (apply - (hash-fold
 					    (λ (_ v prior)
 					      (match-let ([(max min) prior])
