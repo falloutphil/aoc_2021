@@ -56,9 +56,7 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
 		  ;; updated template is sent back into insert
 		  ;; function 10 times.
 		  (loop (1- n) (concatenate (insert t rules)))))]
-	   [counter (make-hash-table)]
-	   [max-kv 0] 
-	   [min-kv 999999]) ;; arbitrarily large
+	   [counter (make-hash-table)])
       ;; Create a dictionary of counts
       (for-each
        (λ (e)
@@ -68,17 +66,9 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
       ;; Find max and min
       (format #t "~%Part 1: ~a~%" (apply - (hash-fold
 					    (λ (_ v prior)
-					       (match-let ([(max min) prior])
-						 (cond
-						  [(> v max) (list v min)]
-						  [(< v min) (list max v)]
-						  [else prior])))
-					     '(0 99999) counter)))
-      
-      (hash-for-each (λ (_ v)
-		       (cond
-			[(> v max-kv) (set! max-kv v)]
-			[(< v min-kv) (set! min-kv v)]))
-		     counter)
-      (format #t "~%Part 1: ~a~%" (- max-kv min-kv)))))
-
+					      (match-let ([(max min) prior])
+						(cond
+						 [(> v max) (list v min)]
+						 [(< v min) (list max v)]
+						 [else prior])))
+					    '(0 99999) counter)))))) ;; 99999 arbitrarily large
