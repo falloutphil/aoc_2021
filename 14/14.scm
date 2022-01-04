@@ -47,12 +47,12 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
 (define (increment-counter! ht k)
   "Increment count in hash table."
   (hash-set! ht k
-	     (1+ (hashv-ref ht k 0))))
+             (1+ (hashv-ref ht k 0))))
 
 (define (omain args)
   (let-values ([(template rules) (file->inputs "test_input.txt")]
-	       [atom-counter (make-hash-table)]
-	       [pair-counter (make-hash-table)])
+               [atom-counter (make-hash-table)]
+               [pair-counter (make-hash-table)])
     (format #t "~%Template: ~a" template)
     (format #t "~%Rules: ~a" rules)
     (for-each (cut increment-counter! atom-counter <> ) template)))
@@ -76,11 +76,11 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
       (for-each (cut increment-counter! counter <> ) result)
       ;; Find max and min dict values and subtract
       (format #t "~%Part 1: ~a~%" (apply - (hash-fold
-					    (λ (_ v prior)
-					      (match-let ([(max min) prior])
-						(cond
-						 [(> v max) (list v min)]
-						 [(< v min) (list max v)]
-						 [else prior])))
-					    '(0 99999) counter)))))) ;; 99999 arbitrarily large
+                                            (λ (_ v prior)
+                                              (match-let ([(max min) prior])
+                                                (cond
+                                                 [(> v max) (list v min)]
+                                                 [(< v min) (list max v)]
+                                                 [else prior])))
+                                            '(0 99999) counter)))))) ;; 99999 arbitrarily large
 
