@@ -10,6 +10,7 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
   #:use-module (ice-9 hash-table)
   #:use-module (srfi srfi-1)   ;; last
   #:use-module (srfi srfi-11)  ;; let-values
+  #:use-module (srfi srfi-26)  ;; cut
   #:use-module (srfi srfi-42)) ;; list-ec/eager comprehensions
 
 
@@ -29,7 +30,8 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
 
 (define (insert template rules)
   "insert between each template item, the
-   element provided by the rules assoc-list."
+   element provided by the rules assoc-list.
+   Used in the naive solution to Part 1."
   (match template
     ;; match if we have 2 elements in the template
     [(x1 x2 . rest)
@@ -41,6 +43,19 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
     ;; base case - if we don't have 2 elements to insert between we cap with the last element 
     [end (list end)]))
 
+
+(define (increment-counter! ht k)
+  "Increment count in hash table."
+  (hash-set! ht k
+	     (1+ (hashv-ref ht k 0))))
+
+(define (omain args)
+  (let-values ([(template rules) (file->inputs "test_input.txt")]
+	       [atom-counter (make-hash-table)]
+	       [pair-counter (make-hash-table)])
+    (format #t "~%Template: ~a" template)
+    (format #t "~%Rules: ~a" rules)
+    (for-each (cut increment-counter! atom-counter <> ) template)))
 
 
 (define (main args)
@@ -58,11 +73,7 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
 		  (loop (1- n) (concatenate (insert t rules)))))]
 	   [counter (make-hash-table)])
       ;; Create a dictionary of counts
-      (for-each
-       (λ (e)
-	 (hashv-set! counter e
-		     (1+ (hashv-ref counter e 0))))
-       result)
+      (for-each (cut increment-counter! counter <> ) result)
       ;; Find max and min dict values and subtract
       (format #t "~%Part 1: ~a~%" (apply - (hash-fold
 					    (λ (_ v prior)
@@ -72,3 +83,4 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
 						 [(< v min) (list max v)]
 						 [else prior])))
 					    '(0 99999) counter)))))) ;; 99999 arbitrarily large
+
