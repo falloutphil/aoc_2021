@@ -20,12 +20,12 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
   (call-with-input-file filename
     (λ (p)
       (values (string->list (read-line p))
-	      (cdr (list-ec (:port line p read-line) ;; cdr removes blank line
-			    (match (string-tokenize line char-set:upper-case)
-			      [() #f]
-			      ;; find a better way to extract the char from the tokenizer!
-			      [(pair insertion) (cons pair (car (string->list insertion)))]
-			      [_ (error "bad rule!")])))))))
+              (cdr (list-ec (:port line p read-line) ;; cdr removes blank line
+                            (match (string-tokenize line char-set:upper-case)
+                              [() #f]
+                              ;; find a better way to extract the char from the tokenizer!
+                              [(pair insertion) (cons pair (car (string->list insertion)))]
+                              [_ (error "bad rule!")])))))))
 
 (define (insert template rules)
   "insert between each template item, the
@@ -35,9 +35,9 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
     [(x1 x2 . rest)
      ;; note we only add the LHS and the insertion element
      (cons (list x1 (assoc-ref rules (string x1 x2)))
-	   ;; we then only drop x1 when recursing
-	   ;; meaning we get x2 added on the next recursion
-	   (insert (cdr template) rules))]
+           ;; we then only drop x1 when recursing
+           ;; meaning we get x2 added on the next recursion
+           (insert (cdr template) rules))]
     ;; base case - if we don't have 2 elements to insert between we cap with the last element 
     [end (list end)]))
 
@@ -48,27 +48,27 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
     ;;(format #t "~%Template: ~a" template)
     ;;(format #t "~%Rules: ~a" rules)
     (let* ([result    
-	    (let loop ([n 10]
-		       [t template])
-	      (if (zero? n)
-		  t ;; return latest template OR
-		  ;; loop not in tail position.
-		  ;; updated template is sent back into insert
-		  ;; function 10 times.
-		  (loop (1- n) (concatenate (insert t rules)))))]
-	   [counter (make-hash-table)])
+            (let loop ([n 10]
+                       [t template])
+              (if (zero? n)
+                  t ;; return latest template OR
+                  ;; loop not in tail position.
+                  ;; updated template is sent back into insert
+                  ;; function 10 times.
+                  (loop (1- n) (concatenate (insert t rules)))))]
+           [counter (make-hash-table)])
       ;; Create a dictionary of counts
       (for-each
        (λ (e)
-	 (hashv-set! counter e
-		     (1+ (hashv-ref counter e 0))))
+         (hashv-set! counter e
+                     (1+ (hashv-ref counter e 0))))
        result)
       ;; Find max and min dict values and subtract
       (format #t "~%Part 1: ~a~%" (apply - (hash-fold
-					    (λ (_ v prior)
-					      (match-let ([(max min) prior])
-						(cond
-						 [(> v max) (list v min)]
-						 [(< v min) (list max v)]
-						 [else prior])))
-					    '(0 99999) counter)))))) ;; 99999 arbitrarily large
+                                            (λ (_ v prior)
+                                              (match-let ([(max min) prior])
+                                                (cond
+                                                 [(> v max) (list v min)]
+                                                 [(< v min) (list max v)]
+                                                 [else prior])))
+                                            '(0 99999) counter)))))) ;; 99999 arbitrarily large
