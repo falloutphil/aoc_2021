@@ -78,7 +78,7 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
                           ;; and because "all pairs are considered simultaneously" we need to avoid
                           ;; deleting any pairs created by other rules within this step.
                           ;; So we can't zero the pair-count, only remove the pairs that this
-                          ;; rule will have removed from the as part of it's own insertion.
+                          ;; rule will have removed from the count as part of it's own insertion.
                           (add-to-counter! pair-counter pair (- original-pair-count))
                           (let ([new-lh-pair (list (first pair) insertion)]
                                 [new-rh-pair (list insertion (second pair))])
