@@ -7,10 +7,8 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
   #:export (main)
   #:use-module (ice-9 rdelim)  ;; read-line
   #:use-module (ice-9 match)
-  #:use-module (ice-9 hash-table)
-  #:use-module (srfi srfi-1)   ;; last
+  #:use-module (srfi srfi-1)   ;; first, second, last, list-copy
   #:use-module (srfi srfi-11)  ;; let-values
-  #:use-module (srfi srfi-26)  ;; cut
   #:use-module (srfi srfi-42)) ;; list-ec/eager comprehensions
 
 
@@ -25,62 +23,83 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
                             (match (string-tokenize line char-set:upper-case)
                               [() #f]
                               ;; find a better way to extract the char from the tokenizer!
-                              [(pair insertion) (cons pair (car (string->list insertion)))]
+                              [(pair insertion) (cons (string->list pair)
+						      (car (string->list insertion)))]
                               [_ (error "bad rule!")])))))))
 
-(define (insert template rules)
-  "insert between each template item, the
-   element provided by the rules assoc-list.
-   Used in the naive solution to Part 1."
-  (match template
-    ;; match if we have 2 elements in the template
-    [(x1 x2 . rest)
-     ;; note we only add the LHS and the insertion element
-     (cons (list x1 (assoc-ref rules (string x1 x2)))
-           ;; we then only drop x1 when recursing
-           ;; meaning we get x2 added on the next recursion
-           (insert (cdr template) rules))]
-    ;; base case - if we don't have 2 elements to insert between we cap with the last element 
-    [end (list end)]))
 
+(define-macro (increment-counter! al k)
+  "Macro to avoid call-reference-by-value.
+   Increment count in alist."
+  `(set! ,al (assoc-set! ,al ,k
+			 (1+ (or (assoc-ref ,al ,k) 0)))))
 
-(define (increment-counter! ht k)
-  "Increment count in hash table."
-  (hash-set! ht k
-             (1+ (hashv-ref ht k 0))))
+(define-macro (add-to-counter! al k v)
+  "Macro to avoid call-reference-by-value.
+   Add 'v' to the key's count, create if non-existent."
+  `(set! ,al (assoc-set! ,al ,k
+			 (+ (or (assoc-ref ,al ,k) 0) ,v))))
 
-(define (omain args)
-  (let-values ([(template rules) (file->inputs "test_input.txt")]
-               [atom-counter (make-hash-table)]
-               [pair-counter (make-hash-table)])
-    (format #t "~%Template: ~a" template)
-    (format #t "~%Rules: ~a" rules)
-    (for-each (cut increment-counter! atom-counter <> ) template)))
-
+(define (assoc-copy lst)
+  "1-deep list copy."
+  (map list-copy lst))
 
 (define (main args)
-  (let-values ([(template rules) (file->inputs "input.txt")])
-    ;;(format #t "~%Template: ~a" template)
-    ;;(format #t "~%Rules: ~a" rules)
-    (let* ([result    
-            (let loop ([n 10]
-                       [t template])
-              (if (zero? n)
-                  t ;; return latest template OR
-                  ;; loop not in tail position.
-                  ;; updated template is sent back into insert
-                  ;; function 10 times.
-                  (loop (1- n) (concatenate (insert t rules)))))]
-           [counter (make-hash-table)])
-      ;; Create a dictionary of counts
-      (for-each (cut increment-counter! counter <> ) result)
-      ;; Find max and min dict values and subtract
-      (format #t "~%Part 1: ~a~%" (apply - (hash-fold
-                                            (λ (_ v prior)
-                                              (match-let ([(max min) prior])
-                                                (cond
-                                                 [(> v max) (list v min)]
-                                                 [(< v min) (list max v)]
-                                                 [else prior])))
-                                            '(0 99999) counter)))))) ;; 99999 arbitrarily large
+  (let-values ([(template rules) (file->inputs "test_input.txt")])
+    (format #t "~%How many steps?: ")
+    (let ([atom-counter '()]
+          [pair-counter '()]
+	  [max-steps (read)]) ;; ask the user for 10 or 40 
+      (format #t "~%Template: ~a" template)
+      (format #t "~%Rules: ~a" rules)
+      (for-each (λ (e) (increment-counter! atom-counter e))
+		template)
+      (for-each (λ (e) (increment-counter! pair-counter e))
+		(zip template (cdr template)))
 
+      (format #t "~%start atom counter: ~a" atom-counter)
+      (format #t "~%start pair counter: ~a" pair-counter)
+      
+      ;; loop over each step
+      ;; NN - 2
+      ;; CC - 2
+      ;; BB - 2 
+      ;; H - 1
+      ;; ------------------
+      ;; NN - 2 
+      ;; BBBBBB - 6
+      ;; CCCC - 4
+      ;; H - 1
+      ;; ------------------
+      ;; NNNNN - 5
+      ;; BBBBBBBBBBB - 11
+      ;; CCCCC - 5
+      ;; HHHH - 4
+
+      (do ([steps 1 (1+ steps)])
+	  ([> steps max-steps])
+	(let ([step-pair-counter (assoc-copy pair-counter)]) ;; must keep list pristine as an input
+	  (for-each (λ (rule)
+		      (match-let* ([(pair . insertion) rule]
+				   [original-pair-count (assoc-ref step-pair-counter pair)])
+			(format #t "~%~%step-pair-counter: ~a" step-pair-counter)
+			(format #t "~%pair: ~a" pair)
+			(format #t "~%insertion: ~a" insertion)
+			(format #t "~%original-pair-count: ~a" original-pair-count)
+			(when original-pair-count
+			  ;; for every count of the original pair we add to an insertion
+			  ;; to the atom counter
+			  (add-to-counter! atom-counter insertion original-pair-count)
+			  ;; the old pairs no longer exist, so subtract them from total
+			  (add-to-counter! pair-counter pair (- 0 original-pair-count))
+			  (let ([new-lh-pair (list (first pair) insertion)]
+				[new-rh-pair (list insertion (second pair))])
+			    ;; for ever count of the original pair we add our new pairs
+			    ;; to the pair counter
+			    (add-to-counter! pair-counter new-lh-pair original-pair-count)
+			    (add-to-counter! pair-counter new-rh-pair original-pair-count))))
+		      (format #t "~%end pair counter: ~a" pair-counter)
+                      (format #t "~%end atom counter: ~a~%" atom-counter))
+		    rules)))
+      
+      )))
