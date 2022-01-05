@@ -91,7 +91,7 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
                           ;; to the atom counter
                           (add-to-counter! atom-counter insertion original-pair-count)
                           ;; the old pairs no longer exist, so subtract them from total
-                          (add-to-counter! pair-counter pair (- 0 original-pair-count))
+                          (add-to-counter! pair-counter pair (- original-pair-count))
                           (let ([new-lh-pair (list (first pair) insertion)]
                                 [new-rh-pair (list insertion (second pair))])
                             ;; for ever count of the original pair we add our new pairs
