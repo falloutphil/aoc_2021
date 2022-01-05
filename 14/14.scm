@@ -56,26 +56,9 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
                 template)
       (for-each (λ (e) (increment-counter! pair-counter e))
                 (zip template (cdr template)))
-
       ;;(format #t "~%start atom counter: ~a" atom-counter)
       ;;(format #t "~%start pair counter: ~a" pair-counter)
       
-      ;; loop over each step
-      ;; NN - 2
-      ;; CC - 2
-      ;; BB - 2 
-      ;; H - 1
-      ;; ------------------
-      ;; NN - 2 
-      ;; BBBBBB - 6
-      ;; CCCC - 4
-      ;; H - 1
-      ;; ------------------
-      ;; NNNNN - 5
-      ;; BBBBBBBBBBB - 11
-      ;; CCCCC - 5
-      ;; HHHH - 4
-
       (do ([steps 1 (1+ steps)])
           ([> steps max-steps])
         (let ([step-pair-counter (assoc-copy pair-counter)]) ;; must keep list pristine as an input
@@ -90,7 +73,12 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
                           ;; for every count of the original pair we add to an insertion
                           ;; to the atom counter
                           (add-to-counter! atom-counter insertion original-pair-count)
-                          ;; the old pairs no longer exist, so subtract them from total
+                          ;; The *original* old pairs no longer exist, so subtract them from total.
+                          ;; Note Well: previous rules may have added the same pairs as part of the same step,
+                          ;; and because "all pairs are considered simultaneously" we need to avoid
+                          ;; deleting any pairs created by other rules within this step.
+                          ;; So we can't zero the pair-count, only remove the pairs that this
+                          ;; rule will have removed from the as part of it's own insertion.
                           (add-to-counter! pair-counter pair (- original-pair-count))
                           (let ([new-lh-pair (list (first pair) insertion)]
                                 [new-rh-pair (list insertion (second pair))])
@@ -101,5 +89,6 @@ exec guile -e '(@ (day14) main)' -s "$0" "$@"
                       ;;(format #t "~%end pair counter: ~a" pair-counter)
                       ;;(format #t "~%end atom counter: ~a~%" atom-counter))
                     rules)))
+      ;; Find the largest and smallest value in the alist
       (match (sort (map cdr atom-counter) >)
-        [(x1 x2 ... xn) (format #t "~%Result: ~a~%" (- x1 xn))]))))
+        [(or (x1 xn) (x1 x2 ... xn)) (format #t "~%Result: ~a~%" (- x1 xn))]))))
