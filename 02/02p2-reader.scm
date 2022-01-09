@@ -2,11 +2,7 @@
 !#
 
 (use-modules
- (oop goops)
- (system reader)
- (system reader library)
- (ice-9 textual-ports)
- (ice-9 rdelim))
+ (system reader))
 
 (define hpos 0)
 (define vpos 0)
