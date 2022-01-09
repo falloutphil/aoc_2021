@@ -39,7 +39,3 @@
 
 (load "input.txt" my-reader)
 (format #t "~%Result: ~a~%" (* hpos vpos))
-
-
-
-
