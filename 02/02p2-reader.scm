@@ -1,6 +1,8 @@
 #!/usr/bin/env -S guile -s
 !#
 
+;; requires guile-reader >= 0.63
+
 (use-modules
  (system reader))
 
