@@ -1,7 +1,7 @@
 #!/usr/bin/env -S guile -s
 !#
 
-(use-modules (system base compile)) ;; compile-file
+(use-modules (language wisp))
 
 ;; requires wisp >= 1.0.7
 
@@ -17,6 +17,5 @@
 (define (down n)
   (set! vpos (+ vpos n)))
 
-(compile-file "input.txt" #:from 'wisp)
-(load "input.txt")
+(map primitive-eval (wisp-scheme-read-file "input.txt"))
 (format #t "~%Result: ~a~%" (* hpos vpos))
