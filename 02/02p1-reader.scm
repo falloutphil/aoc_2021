@@ -26,7 +26,7 @@
 (define (my-token-reader-proc chr port reader top-level-reader)
   (unget-char port chr) ;; can returning the character to the port?
   ;; we use readers here not token-readers because readers
-  ;; move our position in the port along, TRs don't?
+  ;; move our position in the port to end of read symbols, TRs don't?
   (let* ((fn (my-fn-reader port))
 	 (num (my-num-reader port)))
     (list fn num)))
