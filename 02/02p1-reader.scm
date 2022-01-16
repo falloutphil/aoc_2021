@@ -24,7 +24,7 @@
 					 (standard-token-reader 'guile-number))))
 
 (define (my-token-reader-proc chr port reader top-level-reader)
-  (unget-char port chr) ;; can returning the character to the port?
+  (unget-char port chr) ;; can we avoid returning the character to the port?
   ;; we use readers here not token-readers because readers
   ;; move our position in the port to end of read symbols, TRs don't?
   (let* ((fn (my-fn-reader port))
