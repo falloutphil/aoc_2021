@@ -48,11 +48,14 @@ Set to 0 now inspect all neighbours.
     (match d
       ((max-i max-j) (list-ec (: i max-i) (: j max-j) (list i j))))))
 
-(define (neighbour-coords i j)
-  (list (list (1- i) j)
-	(list (1+ i) j)
-	(list i (1- j))
-	(list i (1+ j)))) 
+(define (make-neighbour-coords arr)
+  (λ (i j)
+    (filter (λ (coords)
+	      (apply array-in-bounds? (cons arr coords)))
+	    (list (list (1- i) j)
+		  (list (1+ i) j)
+		  (list i (1- j))
+		  (list i (1+ j))))))
 
 (define (main args)
   (let ([distance-array (parse-input "test_input.txt")])
