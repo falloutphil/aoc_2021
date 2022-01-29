@@ -10,6 +10,8 @@ exec guile -e '(@ (day15) main)' -s "$0" "$@"
 Node:
 distance: #f
 
+Set to 0 now inspect all neighbours.
+
 
 1. Mark all nodes unvisited. Create a set of all the unvisited nodes called the unvisited set.
 
@@ -40,6 +42,19 @@ distance: #f
                               (list-ec (:string ch line)
                                        (- (char->integer ch) 48)))))))
 
+(define (make-2d-coords arr)
+  "Create a set of coordinate pairs for the given array."
+  (let ((d (array-dimensions arr)))
+    (match d
+      ((max-i max-j) (list-ec (: i max-i) (: j max-j) (list i j))))))
+
+(define (neighbour-coords i j)
+  (list (list (1- i) j)
+	(list (1+ i) j)
+	(list i (1- j))
+	(list i (1+ j)))) 
+
 (define (main args)
   (let ([distance-array (parse-input "test_input.txt")])
     (format #t "~%distance-array: ~a" distance-array)))
+
