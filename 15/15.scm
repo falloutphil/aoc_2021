@@ -57,7 +57,16 @@ Set to 0 now inspect all neighbours.
 		  (list i (1- j))
 		  (list i (1+ j))))))
 
+;; you need 2 arrays or an array of objects
+;; you have the cost of each vertex in the array
+;; but you also need to track the cost so far of
+;; each node (starting with infinity).
+(define (update-neighbours cost-array get-neighbours coord)
+  (let ([neighbours (get-neighbours coord)])
+    (format #t "~%neighbours: ~a" neighbours)))
+
 (define (main args)
-  (let ([distance-array (parse-input "test_input.txt")])
-    (format #t "~%distance-array: ~a" distance-array)))
+  (let* ([cost-array (parse-input "test_input.txt")]
+	 [get-neighbours (make-neighbour-coords cost-array)])
+    (format #t "~%cost-array: ~a" cost-array)))
 
