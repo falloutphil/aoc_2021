@@ -99,7 +99,9 @@ Set to 0 now inspect all neighbours.
 
     ;; get-neighbours ; 0 0 needs to be iterative
     (let loop ([current-visit '(0 0)])
-      (unless (equal? current-visit end-point)
+      (unless (or (equal? current-visit end-point)
+		  (> (apply array-ref (cons route-array current-visit))
+		     infinity))
 	(let* ([neighbours (apply get-neighbours current-visit)]
 	       ;; update route-array for each neighbour using cost-array
 	       [next-visit (update-neighbours current-visit neighbours route-array cost-array)])
