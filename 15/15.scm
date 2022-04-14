@@ -100,10 +100,19 @@ Set to 0 now inspect all neighbours.
 	 [get-neighbours (make-neighbour-coords route-array)])
     (format #t "~%cost-array: ~a~%route-array: ~a" cost-array route-array)
 
+    ;; currently gets stuck in a corner with nowhere left to vist:
+    ;; neighbours: ()
+    ;; next visit: #f
+    ;; Also the route of the algo looks odd from the backtrace.
+    ;; current cost is the cumulative cost to date which for the test
+    ;; should go: 0 1 2 1 3 6 5 1 1
+    ;; cumulative: 0 1 3 4 7 13 18 19 20
     (let loop ([current-visit '(0 0)])
+      (let ([current-cost (apply array-ref (cons route-array current-visit))])
+	(format #t "~%~%current vist: ~a" current-visit)
+	(format #t "~%current cost: ~a" current-cost)
       (unless (or (equal? current-visit end-point)
-		  (> (apply array-ref (cons route-array current-visit))
-		     infinity))
+		  (> current-cost infinity))
 	(let* ([neighbours (apply get-neighbours current-visit)]
 	       ;; update route-array for each neighbour using cost-array
 	       [next-visit (update-neighbours current-visit neighbours
@@ -111,7 +120,7 @@ Set to 0 now inspect all neighbours.
 	  (format #t "~%neighbours: ~a" neighbours)
 	  (format #t "~%next visit: ~a" next-visit) 
 	  (format #t "~%cost-array: ~a~%route-array: ~a" cost-array route-array)
-	  (loop next-visit)))
+	  (loop next-visit))))
       (format #t "~%~%Result : ~a~%"
 	      (apply array-ref (cons route-array current-visit))))))
 
