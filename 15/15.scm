@@ -51,7 +51,8 @@ Set to 0 now inspect all neighbours.
 (define (make-neighbour-coords arr)
   (λ (i j)
     (filter (λ (coords)
-	      (apply array-in-bounds? (cons arr coords)))
+	      (and (apply array-in-bounds? (cons arr coords))
+		   (apply array-ref (cons arr coords))))
 	    (list (list (1- i) j)
 		  (list (1+ i) j)
 		  (list i (1- j))
@@ -77,15 +78,17 @@ Set to 0 now inspect all neighbours.
 (define (update-neighbours current-visit neighbours route-array cost-array)
   (let ([current-cost (apply array-ref (cons route-array current-visit))]
 	[next-visit #f])
-    (map (λ (coord)
-	   (let* ([old-cost (apply array-ref (cons route-array coord))]
-		  [new-cost (+ current-cost (apply array-ref (cons cost-array coord)))]
-		  [the-cost (min new-cost old-cost)])
-	     (apply array-set! (append (list route-array the-cost) coord))
-	     (when (or (not next-visit) (< the-cost
-					   (apply array-ref (cons route-array next-visit))))
-	       (set! next-visit coord))))
-	 neighbours)
+      (map (λ (coord)
+	     (let* ([old-cost (apply array-ref (cons route-array coord))]
+		    [new-cost (+ current-cost (apply array-ref (cons cost-array coord)))]
+		    [the-cost (min new-cost old-cost)])
+	       (apply array-set! (append (list route-array the-cost) coord))
+	       (when (or (not next-visit) (< the-cost
+					     (apply array-ref (cons route-array next-visit))))
+		 (set! next-visit coord))))
+	   neighbours)
+      ;; only visit once
+      (apply array-set! (append (list route-array #f) current-visit))
     next-visit))
 
 
@@ -94,19 +97,21 @@ Set to 0 now inspect all neighbours.
 	 [infinity (set-infinity cost-array)] ;; factor this out
 	 [end-point (map 1- (array-dimensions cost-array))] 
 	 [route-array (make-route-array cost-array infinity)]
-	 [get-neighbours (make-neighbour-coords cost-array)])
+	 [get-neighbours (make-neighbour-coords route-array)])
     (format #t "~%cost-array: ~a~%route-array: ~a" cost-array route-array)
 
-    ;; get-neighbours ; 0 0 needs to be iterative
     (let loop ([current-visit '(0 0)])
       (unless (or (equal? current-visit end-point)
 		  (> (apply array-ref (cons route-array current-visit))
 		     infinity))
 	(let* ([neighbours (apply get-neighbours current-visit)]
 	       ;; update route-array for each neighbour using cost-array
-	       [next-visit (update-neighbours current-visit neighbours route-array cost-array)])
+	       [next-visit (update-neighbours current-visit neighbours
+					      route-array cost-array)])
 	  (format #t "~%neighbours: ~a" neighbours)
 	  (format #t "~%next visit: ~a" next-visit) 
 	  (format #t "~%cost-array: ~a~%route-array: ~a" cost-array route-array)
-	  (loop next-visit))))))
+	  (loop next-visit)))
+      (format #t "~%~%Result : ~a~%"
+	      (apply array-ref (cons route-array current-visit))))))
 
