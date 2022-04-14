@@ -83,5 +83,21 @@ Set to 0 now inspect all neighbours.
 	 [infinity (set-infinity cost-array)]
 	 [route-array (make-route-array cost-array infinity)]
 	 [get-neighbours (make-neighbour-coords cost-array)])
-    (format #t "~%cost-array: ~a~%route-array: ~a" cost-array route-array)))
+    (format #t "~%cost-array: ~a~%route-array: ~a" cost-array route-array)
+
+    ;; get-neighbours ; 0 0 needs to be iterative
+    (let* ([current-visit '(0 0)]
+	   [neighbours (apply get-neighbours current-visit)])
+      (format #t "~%neighbours: ~a" neighbours)
+      ;; update route-array for each neighbour using cost-array
+      (map (λ (coord) (apply array-set! (append
+					 (list
+					 route-array
+					 (+ (apply array-ref (cons route-array current-visit))
+					    (apply array-ref (cons cost-array coord))))
+					 coord)))
+	   neighbours)
+      (format #t "~%cost-array: ~a~%route-array: ~a" cost-array route-array)
+      ;;
+      )))
 
