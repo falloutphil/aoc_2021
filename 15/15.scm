@@ -57,14 +57,6 @@ Set to 0 now inspect all neighbours.
 		  (list i (1- j))
 		  (list i (1+ j))))))
 
-;; you need 2 arrays or an array of objects
-;; you have the cost of each vertex in the array
-;; but you also need to track the cost so far of
-;; each node (starting with infinity).
-(define (update-neighbours cost-array get-neighbours coord)
-  (let ([neighbours (get-neighbours coord)])
-    (format #t "~%neighbours: ~a" neighbours)))
-
 
 (define (set-infinity cost-array)
   "Max cost for the current input + 1 can
@@ -78,6 +70,20 @@ Set to 0 now inspect all neighbours.
     (array-set! ra 0 0 0)
     ra))
 		    
+;; you need 2 arrays or an array of objects
+;; you have the cost of each vertex in the array
+;; but you also need to track the cost so far of
+;; each node (starting with infinity).
+(define (update-neighbours current-visit neighbours route-array cost-array)
+  (let ([current-cost (apply array-ref (cons route-array current-visit))])
+    (map (λ (coord)
+	   (let ([old-cost (apply array-ref (cons route-array coord))]
+		 [new-cost (+ current-cost (apply array-ref (cons cost-array coord)))])
+	     (when (< new-cost old-cost)
+	       (apply array-set! (append (list route-array new-cost) coord))))
+	   neighbours)))
+
+
 (define (main args)
   (let* ([cost-array (parse-input "test_input.txt")]
 	 [infinity (set-infinity cost-array)]
@@ -90,13 +96,7 @@ Set to 0 now inspect all neighbours.
 	   [neighbours (apply get-neighbours current-visit)])
       (format #t "~%neighbours: ~a" neighbours)
       ;; update route-array for each neighbour using cost-array
-      (map (λ (coord) (apply array-set! (append
-					 (list
-					 route-array
-					 (+ (apply array-ref (cons route-array current-visit))
-					    (apply array-ref (cons cost-array coord))))
-					 coord)))
-	   neighbours)
+      (update-neighbours current-visit neighbours route-array cost-array) 
       (format #t "~%cost-array: ~a~%route-array: ~a" cost-array route-array)
       ;;
       )))
