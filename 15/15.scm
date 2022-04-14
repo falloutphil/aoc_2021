@@ -75,13 +75,18 @@ Set to 0 now inspect all neighbours.
 ;; but you also need to track the cost so far of
 ;; each node (starting with infinity).
 (define (update-neighbours current-visit neighbours route-array cost-array)
-  (let ([current-cost (apply array-ref (cons route-array current-visit))])
+  (let ([current-cost (apply array-ref (cons route-array current-visit))]
+	[next-visit #f])
     (map (λ (coord)
-	   (let ([old-cost (apply array-ref (cons route-array coord))]
-		 [new-cost (+ current-cost (apply array-ref (cons cost-array coord)))])
-	     (when (< new-cost old-cost)
-	       (apply array-set! (append (list route-array new-cost) coord))))
-	   neighbours)))
+	   (let* ([old-cost (apply array-ref (cons route-array coord))]
+		  [new-cost (+ current-cost (apply array-ref (cons cost-array coord)))]
+		  [the-cost (min new-cost old-cost)])
+	     (apply array-set! (append (list route-array the-cost) coord))
+	     (when (or (not next-visit) (< the-cost
+					   (apply array-ref (cons route-array next-visit))))
+	       (set! next-visit coord))))
+	 neighbours)
+    next-visit))
 
 
 (define (main args)
@@ -96,7 +101,7 @@ Set to 0 now inspect all neighbours.
 	   [neighbours (apply get-neighbours current-visit)])
       (format #t "~%neighbours: ~a" neighbours)
       ;; update route-array for each neighbour using cost-array
-      (update-neighbours current-visit neighbours route-array cost-array) 
+      (format #t "~%next visit: ~a" (update-neighbours current-visit neighbours route-array cost-array) ) 
       (format #t "~%cost-array: ~a~%route-array: ~a" cost-array route-array)
       ;;
       )))
