@@ -65,8 +65,23 @@ Set to 0 now inspect all neighbours.
   (let ([neighbours (get-neighbours coord)])
     (format #t "~%neighbours: ~a" neighbours)))
 
+
+(define (set-infinity cost-array)
+  "Max cost for the current input + 1 can
+   be used as infinity."
+  (let ([infinity 0])
+    (array-for-each (λ (i) (set! infinity (+ infinity i))) cost-array)
+    (1+ infinity)))
+
+(define (make-route-array cost-array infinity)
+  (let ([ra (apply make-array (cons infinity (array-dimensions cost-array)))])
+    (array-set! ra 0 0 0)
+    ra))
+		    
 (define (main args)
   (let* ([cost-array (parse-input "test_input.txt")]
+	 [infinity (set-infinity cost-array)]
+	 [route-array (make-route-array cost-array infinity)]
 	 [get-neighbours (make-neighbour-coords cost-array)])
-    (format #t "~%cost-array: ~a" cost-array)))
+    (format #t "~%cost-array: ~a~%route-array: ~a" cost-array route-array)))
 
