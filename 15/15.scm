@@ -51,15 +51,14 @@ Set to 0 now inspect all neighbours.
 (define (make-neighbour-coords arr)
   (λ (i j)
     (filter (λ (coords)
-	      (and (apply array-in-bounds? (cons arr coords))
-		   (apply array-ref (cons arr coords))))
+	      (apply array-in-bounds? (cons arr coords)))
 	    (list (list (1- i) j)
 		  (list (1+ i) j)
 		  (list i (1- j))
 		  (list i (1+ j))))))
 
 
-(define (set-infinity cost-array)
+(define (get-infinity cost-array)
   "Max cost for the current input + 1 can
    be used as infinity."
   (let ([infinity 0])
@@ -71,11 +70,16 @@ Set to 0 now inspect all neighbours.
     (array-set! ra 0 0 0)
     ra))
 
+;; to visit array - start with all true
+(define (make-visited-array cost-array)
+  (apply make-array (cons #t (array-dimensions cost-array))))
+
+
 ;; you need 2 arrays or an array of objects
 ;; you have the cost of each vertex in the array
 ;; but you also need to track the cost so far of
 ;; each node (starting with infinity).
-(define (update-neighbours current-visit neighbours route-array cost-array)
+(define (update-neighbours current-visit neighbours route-array cost-array visited-array)
   (let ([current-cost (apply array-ref (cons route-array current-visit))]
 	[next-visit #f])
       (map (λ (coord)
@@ -83,20 +87,22 @@ Set to 0 now inspect all neighbours.
 		    [new-cost (+ current-cost (apply array-ref (cons cost-array coord)))]
 		    [the-cost (min new-cost old-cost)])
 	       (apply array-set! (append (list route-array the-cost) coord))
-	       (when (or (not next-visit) (< the-cost
-					     (apply array-ref (cons route-array next-visit))))
+	       (when (and (apply array-ref (cons visited-array coord))
+			  (or (not next-visit) (< the-cost
+						  (apply array-ref (cons route-array next-visit)))))
 		 (set! next-visit coord))))
 	   neighbours)
       ;; only visit once
-      (apply array-set! (append (list route-array #f) current-visit))
+      (apply array-set! (append (list visited-array #f) current-visit))
     next-visit))
 
 
 (define (main args)
   (let* ([cost-array (parse-input "test_input.txt")]
-	 [infinity (set-infinity cost-array)] ;; factor this out
+	 [infinity (get-infinity cost-array)] ;; factor this out
 	 [end-point (map 1- (array-dimensions cost-array))] 
 	 [route-array (make-route-array cost-array infinity)]
+	 [visited-array (make-visited-array cost-array)]
 	 [get-neighbours (make-neighbour-coords route-array)])
     (format #t "~%cost-array: ~a~%route-array: ~a" cost-array route-array)
 
@@ -116,10 +122,10 @@ Set to 0 now inspect all neighbours.
 	(let* ([neighbours (apply get-neighbours current-visit)]
 	       ;; update route-array for each neighbour using cost-array
 	       [next-visit (update-neighbours current-visit neighbours
-					      route-array cost-array)])
+					      route-array cost-array visited-array)])
 	  (format #t "~%neighbours: ~a" neighbours)
 	  (format #t "~%next visit: ~a" next-visit) 
-	  (format #t "~%cost-array: ~a~%route-array: ~a" cost-array route-array)
+	  (format #t "~%cost-array: ~a~%route-array: ~a~%visited array: ~a" cost-array route-array visited-array)
 	  (loop next-visit))))
       (format #t "~%~%Result : ~a~%"
 	      (apply array-ref (cons route-array current-visit))))))
