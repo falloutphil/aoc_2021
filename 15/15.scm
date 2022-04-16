@@ -26,6 +26,22 @@ Set to 0 now inspect all neighbours.
 6. Otherwise, select the unvisited node that is marked with the smallest tentative distance, set it as the new current node, and go back to step 3.
 !#
 
+;; The problem with this is that it gets stuck because when it heads a dead-end, it can't fallback
+;; to a previous path that was discounted in favour of the "best" choice at that time.
+;; Thus if the best choice leads to a point where there are no more unvisted neighbours, but
+;; we haven't have found the solution then it should find a more expensive neighbour from some previous
+;; iteration and then exhaust that, if that fails, it tries the next expensive neighbour, and so on.
+
+;; Here instead we always assume the next vistor can be found from the current neighbours.
+;; Thus rather than replace the next visitor each time we find an improvement, this
+;; needs to a be a list like structure of potential candidate, and cost to that point.
+;; This list is then sorted to find the cheapest next step, which may be to go back
+;; and continue on a different path, if subsequent searches prove expensive on the current path.
+
+;; Note this is the clever thing - if won't exhaust a single path, it will forever consider every path
+;; up until now and advance the least expensive path so far, even if it is not the closest node
+;; to the target.
+
 (define-module (day15)
   #:export (main)
   #:use-module (ice-9 rdelim)  ;; read-line
@@ -86,10 +102,10 @@ Set to 0 now inspect all neighbours.
 	     (let* ([old-cost (apply array-ref (cons route-array coord))]
 		    [new-cost (+ current-cost (apply array-ref (cons cost-array coord)))]
 		    [the-cost (min new-cost old-cost)])
-	       (apply array-set! (append (list route-array the-cost) coord))
 	       (when (and (apply array-ref (cons visited-array coord))
 			  (or (not next-visit) (< the-cost
 						  (apply array-ref (cons route-array next-visit)))))
+		 (apply array-set! (append (list route-array the-cost) coord))
 		 (set! next-visit coord))))
 	   neighbours)
       ;; only visit once
