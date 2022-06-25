@@ -1,6 +1,6 @@
-'From Cuis 6.0 [latest update: #5069] on 25 June 2022 at 11:47:34 pm'!
+'From Cuis 6.0 [latest update: #5069] on 26 June 2022 at 12:20:47 am'!
 'Description '!
-!provides: 'AOC2021' 1 1!
+!provides: 'AOC2021' 1 2!
 SystemOrganization addCategory: 'AOC2021'!
 
 
@@ -15,19 +15,18 @@ Day01 class
 	instanceVariableNames: ''!
 
 
-!Day01 methodsFor: 'evaluating' stamp: 'pab 6/25/2022 23:40:16'!
+!Day01 methodsFor: 'evaluating' stamp: 'pab 6/26/2022 00:16:59'!
 calculatePart1
 	"Return result for Part 1"
-	count := 0.
-	self loadPuzzleInput: '/home/ubuntu/git/aoc_2021/01/input.txt'.
+	count := 0..
 	2 to: (depths size) do: [ :i | (depths at: i) > (depths at: (i-1))
 		ifTrue: [ count := count + 1 ] ].
 	^ count
 	! !
 
-!Day01 methodsFor: 'evaluating' stamp: 'pab 6/25/2022 23:46:10'!
+!Day01 methodsFor: 'evaluating' stamp: 'pab 6/26/2022 00:19:43'!
 doIt: filenameString
-	"Run the exercise"
+	"Hint: Day01 new doIt: '/home/ubuntu/git/aoc_2021/01/input.txt'"
        self loadPuzzleInput: filenameString.
        ^ self calculatePart1! !
 
