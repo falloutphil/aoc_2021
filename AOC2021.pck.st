@@ -1,8 +1,28 @@
-'From Cuis 6.0 [latest update: #5069] on 26 June 2022 at 12:20:47 am'!
+'From Cuis 6.0 [latest update: #5299] on 26 June 2022 at 11:28:26 pm'!
 'Description '!
-!provides: 'AOC2021' 1 2!
+!provides: 'AOC2021' 1 3!
 SystemOrganization addCategory: 'AOC2021'!
 
+
+!classDefinition: #Day01Morph category: 'AOC2021'!
+PlacedMorph subclass: #Day01Morph
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'AOC2021'!
+!classDefinition: 'Day01Morph class' category: 'AOC2021'!
+Day01Morph class
+	instanceVariableNames: ''!
+
+!classDefinition: #Day01Line category: 'AOC2021'!
+Morph subclass: #Day01Line
+	instanceVariableNames: 'depthCoords'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'AOC2021'!
+!classDefinition: 'Day01Line class' category: 'AOC2021'!
+Day01Line class
+	instanceVariableNames: ''!
 
 !classDefinition: #Day01 category: 'AOC2021'!
 Object subclass: #Day01
@@ -14,6 +34,46 @@ Object subclass: #Day01
 Day01 class
 	instanceVariableNames: ''!
 
+
+!Day01Morph methodsFor: 'as yet unclassified' stamp: 'pa 6/26/2022 23:20:38'!
+drawOn: aCanvas
+	aCanvas
+		strokeWidth: 1
+		color: Color blue
+		fillColor: (Color brown alpha: 0.5)
+		do: [
+			aCanvas moveTo: 0 @ 0;
+			lineTo: 2000 @ 0;
+			lineTo: 2000 @ 1300;
+			lineTo: 0 @ 1300;
+			lineTo: 0 @ 0]! !
+
+!Day01Morph methodsFor: 'geometry testing' stamp: 'pa 6/26/2022 20:42:11'!
+clipsSubmorphs
+	^ false! !
+
+!Day01Morph class methodsFor: 'as yet unclassified' stamp: 'pa 6/26/2022 23:12:28'!
+with: anOrderedCollection
+	^ self new
+		addMorph: (Day01Line with: anOrderedCollection);
+		yourself! !
+
+!Day01Line methodsFor: 'drawing' stamp: 'pa 6/26/2022 23:24:01'!
+drawOn: aCanvas
+	"comment stating purpose of message"
+	aCanvas strokeWidth: 5 color: Color green do: [
+		aCanvas moveTo: 0 @ 0.
+		depthCoords do: [ :c | aCanvas lineTo: c ]].! !
+
+!Day01Line methodsFor: 'as yet unclassified' stamp: 'pa 6/26/2022 23:15:46'!
+addDepths: anOrderedCollection
+	depthCoords := anOrderedCollection withIndexCollect: [ :e :i | i @ (e/3) ]! !
+
+!Day01Line class methodsFor: 'as yet unclassified' stamp: 'pa 6/26/2022 23:11:06'!
+with: anOrderedCollection
+	^ self new
+		addDepths: anOrderedCollection;
+		yourself! !
 
 !Day01 methodsFor: 'evaluating' stamp: 'pab 6/26/2022 00:16:59'!
 calculatePart1
@@ -45,3 +105,8 @@ initialize
        super initialize.
 	count := 0.
 	depths := OrderedCollection new.! !
+
+!Day01 methodsFor: 'as yet unclassified' stamp: 'pa 6/26/2022 23:25:34'!
+show
+	"comment stating purpose of message"
+	(Day01Morph with: depths) openInWorld! !
