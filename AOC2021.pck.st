@@ -1,12 +1,12 @@
-'From Cuis 6.0 [latest update: #5299] on 28 June 2022 at 11:03:36 pm'!
+'From Cuis 6.0 [latest update: #5299] on 28 June 2022 at 11:07:20 pm'!
 'Description '!
-!provides: 'AOC2021' 1 4!
+!provides: 'AOC2021' 1 5!
 SystemOrganization addCategory: 'AOC2021'!
 
 
 !classDefinition: #Day01Sub category: 'AOC2021'!
 ImageMorph subclass: #Day01Sub
-	instanceVariableNames: 'depthCoords subMorph'
+	instanceVariableNames: 'depthCoords'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'AOC2021'!
