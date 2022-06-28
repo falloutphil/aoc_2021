@@ -1,8 +1,18 @@
-'From Cuis 6.0 [latest update: #5299] on 26 June 2022 at 11:28:26 pm'!
+'From Cuis 6.0 [latest update: #5299] on 28 June 2022 at 11:03:36 pm'!
 'Description '!
-!provides: 'AOC2021' 1 3!
+!provides: 'AOC2021' 1 4!
 SystemOrganization addCategory: 'AOC2021'!
 
+
+!classDefinition: #Day01Sub category: 'AOC2021'!
+ImageMorph subclass: #Day01Sub
+	instanceVariableNames: 'depthCoords subMorph'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'AOC2021'!
+!classDefinition: 'Day01Sub class' category: 'AOC2021'!
+Day01Sub class
+	instanceVariableNames: ''!
 
 !classDefinition: #Day01Morph category: 'AOC2021'!
 PlacedMorph subclass: #Day01Morph
@@ -35,12 +45,42 @@ Day01 class
 	instanceVariableNames: ''!
 
 
-!Day01Morph methodsFor: 'as yet unclassified' stamp: 'pa 6/26/2022 23:20:38'!
+!Day01Sub methodsFor: 'as yet unclassified' stamp: 'pa 6/28/2022 22:49:17'!
+addDepths: anOrderedCollection
+	depthCoords := anOrderedCollection withIndexCollect: [ :e :i | i - 40 @ ((e/3) - 100) ]! !
+
+!Day01Sub methodsFor: 'as yet unclassified' stamp: 'pa 6/28/2022 22:30:42'!
+initialize
+	"comment stating purpose of message"
+	super initialize.
+	self image: (ImageReadWriter formFromFileEntry: ('/home/ubuntu/git/aoc_2021/01/smallsub.png' asFileEntry)).! !
+
+!Day01Sub methodsFor: 'as yet unclassified' stamp: 'pa 6/28/2022 22:19:18'!
+step
+	self morphPosition: depthCoords removeFirst.
+	(depthCoords size = 0) ifTrue: [ self stopStepping ].
+	self redrawNeeded! !
+
+!Day01Sub methodsFor: 'as yet unclassified' stamp: 'pa 6/28/2022 19:34:55'!
+stepTime
+	^ 100! !
+
+!Day01Sub methodsFor: 'as yet unclassified' stamp: 'pa 6/28/2022 22:24:14'!
+wantsSteps
+	^ true! !
+
+!Day01Sub class methodsFor: 'as yet unclassified' stamp: 'pa 6/28/2022 21:41:44'!
+with: anOrderedCollection
+	^ self new
+		addDepths: anOrderedCollection;
+		yourself! !
+
+!Day01Morph methodsFor: 'as yet unclassified' stamp: 'pa 6/28/2022 21:11:06'!
 drawOn: aCanvas
 	aCanvas
 		strokeWidth: 1
 		color: Color blue
-		fillColor: (Color brown alpha: 0.5)
+		fillColor: (Color blue alpha: 0.5)
 		do: [
 			aCanvas moveTo: 0 @ 0;
 			lineTo: 2000 @ 0;
@@ -48,26 +88,31 @@ drawOn: aCanvas
 			lineTo: 0 @ 1300;
 			lineTo: 0 @ 0]! !
 
-!Day01Morph methodsFor: 'geometry testing' stamp: 'pa 6/26/2022 20:42:11'!
+!Day01Morph methodsFor: 'geometry testing' stamp: 'pa 6/28/2022 23:01:15'!
 clipsSubmorphs
-	^ false! !
+	^ true! !
 
-!Day01Morph class methodsFor: 'as yet unclassified' stamp: 'pa 6/26/2022 23:12:28'!
+!Day01Morph class methodsFor: 'as yet unclassified' stamp: 'pa 6/28/2022 09:08:10'!
 with: anOrderedCollection
 	^ self new
 		addMorph: (Day01Line with: anOrderedCollection);
+		addMorph: (Day01Sub with: anOrderedCollection);
 		yourself! !
 
-!Day01Line methodsFor: 'drawing' stamp: 'pa 6/26/2022 23:24:01'!
+!Day01Line methodsFor: 'drawing' stamp: 'pa 6/28/2022 22:50:37'!
 drawOn: aCanvas
 	"comment stating purpose of message"
-	aCanvas strokeWidth: 5 color: Color green do: [
-		aCanvas moveTo: 0 @ 0.
-		depthCoords do: [ :c | aCanvas lineTo: c ]].! !
+	aCanvas strokeWidth: 5 color: (Color r: 249 g: 232 b: 182) fillColor: (Color darkGray) do: [
+		aCanvas moveTo: 0 @500.
+		depthCoords do: [ :c | aCanvas lineTo: c ].
+		aCanvas
+			lineTo: 0@(3728/3);
+			lineTo: 0@500.
+		].! !
 
-!Day01Line methodsFor: 'as yet unclassified' stamp: 'pa 6/26/2022 23:15:46'!
+!Day01Line methodsFor: 'as yet unclassified' stamp: 'pa 6/28/2022 22:59:50'!
 addDepths: anOrderedCollection
-	depthCoords := anOrderedCollection withIndexCollect: [ :e :i | i @ (e/3) ]! !
+	depthCoords := anOrderedCollection withIndexCollect: [ :e :i | i @ ((e/3) + 50) ]! !
 
 !Day01Line class methodsFor: 'as yet unclassified' stamp: 'pa 6/26/2022 23:11:06'!
 with: anOrderedCollection
