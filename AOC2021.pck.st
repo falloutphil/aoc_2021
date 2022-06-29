@@ -1,6 +1,8 @@
-'From Cuis 6.0 [latest update: #5299] on 29 June 2022 at 9:38:54 am'!
+'From Cuis 6.0 [latest update: #5299] on 29 June 2022 at 4:49:50 pm'!
 'Description '!
-!provides: 'AOC2021' 1 6!
+!provides: 'AOC2021' 1 7!
+!requires: 'VectorGraphics' 1 354 nil!
+!requires: 'Graphics-Files-Additional' 1 24 nil!
 SystemOrganization addCategory: 'AOC2021'!
 
 
@@ -49,12 +51,6 @@ Day01 class
 addDepths: anOrderedCollection
 	depthCoords := anOrderedCollection withIndexCollect: [ :e :i | i - 40 @ ((e/3) - 100) ]! !
 
-!Day01Sub methodsFor: 'as yet unclassified' stamp: 'pa 6/28/2022 22:30:42'!
-initialize
-	"comment stating purpose of message"
-	super initialize.
-	self image: (ImageReadWriter formFromFileEntry: ('/home/ubuntu/git/aoc_2021/01/smallsub.png' asFileEntry)).! !
-
 !Day01Sub methodsFor: 'as yet unclassified' stamp: 'pa 6/28/2022 22:19:18'!
 step
 	self morphPosition: depthCoords removeFirst.
@@ -69,10 +65,11 @@ stepTime
 wantsSteps
 	^ true! !
 
-!Day01Sub class methodsFor: 'as yet unclassified' stamp: 'pa 6/28/2022 21:41:44'!
-with: anOrderedCollection
+!Day01Sub class methodsFor: 'as yet unclassified' stamp: 'PAB 6/29/2022 16:45:02'!
+with: anOrderedCollection sub: filenameString
 	^ self new
 		addDepths: anOrderedCollection;
+		image: (ImageReadWriter formFromFileEntry: (filenameString asFileEntry));
 		yourself! !
 
 !Day01Morph methodsFor: 'as yet unclassified' stamp: 'pa 6/28/2022 21:11:06'!
@@ -97,6 +94,13 @@ with: anOrderedCollection
 	^ self new
 		addMorph: (Day01Line with: anOrderedCollection);
 		addMorph: (Day01Sub with: anOrderedCollection);
+		yourself! !
+
+!Day01Morph class methodsFor: 'as yet unclassified' stamp: 'PAB 6/29/2022 16:43:04'!
+with: anOrderedCollection sub: filenameString
+	^ self new
+		addMorph: (Day01Line with: anOrderedCollection);
+		addMorph: (Day01Sub with: anOrderedCollection sub: filenameString);
 		yourself! !
 
 !Day01Line methodsFor: 'drawing' stamp: 'pa 6/29/2022 09:37:53'!
@@ -151,7 +155,7 @@ initialize
 	count := 0.
 	depths := OrderedCollection new.! !
 
-!Day01 methodsFor: 'as yet unclassified' stamp: 'pa 6/26/2022 23:25:34'!
-show
+!Day01 methodsFor: 'as yet unclassified' stamp: 'PAB 6/29/2022 16:46:12'!
+show: subFilenameString
 	"comment stating purpose of message"
-	(Day01Morph with: depths) openInWorld! !
+	(Day01Morph with: depths sub: subFilenameString) openInWorld! !
