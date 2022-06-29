@@ -1,6 +1,6 @@
-'From Cuis 6.0 [latest update: #5299] on 28 June 2022 at 11:07:20 pm'!
+'From Cuis 6.0 [latest update: #5299] on 29 June 2022 at 9:38:54 am'!
 'Description '!
-!provides: 'AOC2021' 1 5!
+!provides: 'AOC2021' 1 6!
 SystemOrganization addCategory: 'AOC2021'!
 
 
@@ -99,14 +99,14 @@ with: anOrderedCollection
 		addMorph: (Day01Sub with: anOrderedCollection);
 		yourself! !
 
-!Day01Line methodsFor: 'drawing' stamp: 'pa 6/28/2022 22:50:37'!
+!Day01Line methodsFor: 'drawing' stamp: 'pa 6/29/2022 09:37:53'!
 drawOn: aCanvas
 	"comment stating purpose of message"
 	aCanvas strokeWidth: 5 color: (Color r: 249 g: 232 b: 182) fillColor: (Color darkGray) do: [
 		aCanvas moveTo: 0 @500.
 		depthCoords do: [ :c | aCanvas lineTo: c ].
 		aCanvas
-			lineTo: 0@(3728/3);
+			lineTo: 0@(3728/3 + 50);
 			lineTo: 0@500.
 		].! !
 
